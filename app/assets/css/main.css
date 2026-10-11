@@ -11,22 +11,49 @@
 }
 
 @layer base {
-  html { color-scheme: dark; background: var(--color-background); }
-  body { margin: 0; color: var(--color-primary); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+  html { color-scheme: dark; background: var(--color-background); scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  body { margin: 0; color: var(--color-primary); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; overflow-wrap: anywhere; }
   button, a, input { -webkit-tap-highlight-color: transparent; }
   button:not(:disabled), a { touch-action: manipulation; }
   button:not(:disabled) { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
   ::selection { background: var(--color-accent); color: var(--color-background); }
   html:has(dialog[open]) { overflow: hidden; }
+  input, select, textarea { scroll-margin-block: 5rem; }
 }
 
 @layer components {
-  .panel { @apply rounded-3xl border border-white/8 bg-surface; }
-  .field { @apply min-h-12 w-full rounded-2xl border border-white/10 bg-background px-4 text-base text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none; }
-  .eyebrow { @apply text-xs font-semibold tracking-[0.16em] text-secondary uppercase; }
-  .button-primary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-accent px-5 font-semibold text-background transition-colors hover:bg-lime-200 disabled:cursor-not-allowed disabled:opacity-50; }
-  .button-secondary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-interactive px-5 font-semibold text-primary transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50; }
+  .panel { @apply rounded-xl bg-surface; }
+  .field { @apply min-h-12 min-w-0 w-full rounded-md border border-secondary/70 bg-background px-3 text-base text-primary placeholder:text-secondary focus:border-accent; }
+  .eyebrow { @apply text-xs font-medium text-secondary; }
+  .button-primary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-accent px-5 font-semibold text-background transition-colors hover:bg-lime-200 active:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-50; }
+  .button-secondary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-secondary/70 bg-interactive px-5 font-medium text-primary transition-colors hover:bg-zinc-700 active:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50; }
+  .app-header { @apply mx-auto flex max-w-6xl items-center justify-between gap-4 border-b border-white/15 px-5 py-4 sm:px-8; }
+  .app-main { @apply mx-auto max-w-6xl px-5 pt-7 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-8 sm:pt-10; }
+  .page-heading { @apply mb-7 border-b border-white/15 pb-6 sm:mb-9 sm:pb-8; }
+  .page-title { font-size: clamp(2.15rem, 5vw, 3.75rem); @apply font-extrabold leading-[1.05] tracking-[-0.045em]; }
+  .section-label { @apply text-sm font-semibold text-primary; }
+  .ledger-section { @apply border-t border-white/15 pt-6; }
+  .ledger-number { @apply font-extrabold leading-none tracking-[-0.06em] whitespace-nowrap tabular-nums; }
+  .dashboard-layout { @apply grid gap-y-8; }
+  .progress-layout { @apply grid items-start gap-y-8; }
+  .plan-entry { @apply grid min-w-0 gap-5 border-t border-white/15 py-6; grid-template-columns: 2.5rem minmax(0, 1fr); }
+  .plan-entry-actions { @apply col-start-2 flex flex-wrap gap-3; }
+}
+
+@media (min-width: 700px) {
+  .dashboard-layout { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); column-gap: 2rem; }
+  .dashboard-main { grid-row: span 2; }
+  .progress-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 2rem; }
+  .progress-history { grid-column: 1 / -1; }
+  .plan-entry { grid-template-columns: 3.5rem minmax(0, 1fr); }
+}
+
+@media (min-width: 1000px) {
+  .app-main { padding-bottom: 3rem; }
+  .progress-layout { grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr); column-gap: 3rem; }
+  .plan-entry { grid-template-columns: 4rem minmax(0, 1fr) minmax(0, 22rem); align-items: start; }
+  .plan-entry-actions { grid-column: 3; justify-content: flex-end; }
 }
 
 @media (prefers-reduced-motion: reduce) {

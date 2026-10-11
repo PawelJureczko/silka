@@ -6,13 +6,13 @@ Siłka to bezpłatna aplikacja PWA do planowania treningów siłowych i śledzen
 
 Repozytorium: https://github.com/PawelJureczko/silka
 
-Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany eksport/import kopii. Etap 3 dodaje dashboard, rozpoczęcie i wznowienie sesji, wykonane serie, poprzednie wyniki, timer, lokalny szkic z kolejką oraz zakończenie i porzucenie z podsumowaniem. Postępy, AI i instalacja PWA są planowane.
+Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany eksport/import kopii. Etap 3 dodaje dashboard, rozpoczęcie i wznowienie sesji, wykonane serie, poprzednie wyniki, timer, lokalny szkic z kolejką oraz zakończenie i porzucenie z podsumowaniem. Etap 4 dodaje historię z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycję profilu. AI i instalacja PWA są planowane.
 
 Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
 
 Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 10 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Wdrożenie Vercel oraz PWA nie zostały wykonane.
 
-Migracje `20261011000100`–`20261011000600` są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. Cztery RPC planów oraz cztery RPC treningów działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
+Migracje `20261011000100`–`20261011000800` są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. Cztery RPC planów, cztery RPC treningów oraz trzy RPC postępów i profilu działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
 
 Stan sprawdzony 11 października 2026: lokalny katalog był pusty i nie był checkoutem Git. GitHub zwracał publiczne repozytorium bez gałęzi domyślnej, o rozmiarze 0 KB. Przy przygotowaniu dokumentacji nie inicjalizowano aplikacji ani usług.
 
@@ -87,6 +87,8 @@ UI nie wykonuje własnych zapytań Supabase. Nie tworzymy ogólnego frameworka r
 ## Design system
 
 Dark mode jest podstawowym motywem.
+
+Kierunek layoutu rozwija [DESIGN.md](DESIGN.md): osobisty dziennik siłowy, wyraźna typografia wyników, numerowana kolejność i spisy zamiast powtarzalnych kart. Dolna nawigacja pozostaje na telefonie i tablecie, a od 1000 px mieści się w nagłówku. Od 700 px start i postępy korzystają z dwóch kolumn. Tokeny kolorów pozostają bez zmian.
 
 | Token | Wartość | Zastosowanie |
 | --- | --- | --- |
@@ -383,6 +385,18 @@ Osobny kontrakt `format: "silka-plan"`, `schemaVersion: 1` zawiera `plan` zgodny
 Importer dopasowuje dostępne ćwiczenia po ID i zgodnej konwencji obciążenia. Pozostałe wymagają jawnego wyboru lub utworzenia własnego ćwiczenia. Zatwierdzenie zapisuje nowy plan „… — kopia”; nie ustawia go automatycznie jako aktywnego. Anulowanie podglądu nie zapisuje planu. Osobno zatwierdzone dodanie ćwiczenia do katalogu pozostaje na koncie.
 
 Zapis całego planu, aktywacja i archiwizacja są transakcyjnymi RPC działającymi z RLS wywołującego. Zapis używa bazowej rewizji i stabilnego ID operacji; ponowienie ostatniego zapisu z identycznymi danymi zwraca istniejący wynik. Zmiana danych pod tym samym ID operacji jest odrzucana. Nieaktualna rewizja blokuje nadpisanie. Po nowszej operacji wymagany jest ponowny odczyt. Archiwizacja usuwa aktywne przypisanie, a przywrócenie go nie odtwarza. Edytor planów wymaga sieci; lokalne zabezpieczenie aktywnego treningu działa od etapu 3.
+
+## Zaimplementowane postępy i sugestie — etap 4
+
+- Historia pokazuje zakończone i porzucone sesje po 20 na stronę, z filtrem statusu i zakresami ostatnich 30/90 dni lub całej historii. Aktywna sesja pozostaje na dashboardzie. Szczegóły i rekord prowadzą do snapshotu konkretnego treningu.
+- Statystyki liczą zakończone sesje według daty rozpoczęcia. Regularność obejmuje 12 tygodni od poniedziałku w strefie profilu: aktywne tygodnie, tygodnie z osiągniętym celem i serię aktywności ograniczoną do tego okna. Pusty bieżący tydzień nie przerywa serii przed jego końcem. Cel domyślny to 3 treningi; zmiana celu przelicza również prezentowane wcześniejsze tygodnie.
+- Porównania wymagają zgodnego ID ćwiczenia, sprzętu, trybu i konwencji obciążenia ze snapshotu. Lista wyboru obejmuje do 200 ostatnio używanych wariantów. Rekord obejmuje całą zgodną historię; lekki, ładowany na żądanie wykres SVG pokazuje do 30 ostatnich sesji z wykonanymi seriami roboczymi.
+- Rozgrzewki, pominięte serie i sesje porzucone nie tworzą rekordów ani punktów wykresu. Dla obciążenia zewnętrznego rekord to największy ciężar (przy remisie więcej powtórzeń), dla asysty najmniejsza asysta, dla masy ciała najwięcej powtórzeń z informacją o zapisanym dodatkowym ciężarze. Nie wyliczamy 1RM.
+- Wykres pokazuje ciężar lub powtórzenia, a dla obciążenia zewnętrznego także sumę zapisanego kg × powtórzenia. Dla hantli na rękę nie podwajamy zapisu. Nie sumujemy objętości między różnymi ćwiczeniami, konwencjami, masą ciała i asystą. Powtórzenia mogą pochodzić z serii o różnym ciężarze, co opisuje UI.
+- Zatwierdzona reguła sugestii używa ostatniej wcześniejszej zakończonej sesji zgodnego wariantu i kroku ciężaru dostępnego ćwiczenia z katalogu. Wymaga tej samej liczby, kolejności i zakresów planowanych serii roboczych oraz kompletu wykonania przy jednym ciężarze. Gdy wszystkie osiągnęły górny zakres, proponuje jeden krok więcej (dla asysty mniej); w przeciwnym razie utrzymuje ciężar. Brak danych, niezgodność albo powtórzenie wariantu w ostatniej sesji blokują sugestię. Dodatkowe serie bez zakresów i rozgrzewki nie sterują progresją. Masa ciała nie otrzymuje automatycznej sugestii kilogramów. Granice zapisu 0–1000 kg pozostają zachowane.
+- Sugestia jest pobierana na żądanie. Podgląd wskazuje niewykonane planowane serie robocze bieżącej sesji, pozwala zmienić ciężar i wymaga zatwierdzenia. Anulowanie nie zapisuje zmian. Przed zastosowaniem ponownie sprawdzamy stan sesji i wartości wskazanych serii; zmieniony podgląd jest odrzucany bez częściowego zapisu. Zatwierdzenie trafia przez istniejący lokalny dziennik i kolejkę. Nie zmienia planu, powtórzeń ani statusów serii.
+- Profil edytuje nazwę, cel treningowy, strefę czasową i liczbę treningów w tygodniu (1–7). RPC zapisuje tylko profil `auth.uid()` i atomowo zachowuje pozostałe klucze `preferences`; cel jest w `preferences.weeklyTarget`. Eksport całej historii i ustawienia PWA pozostają do etapu wydania.
+- Agregacje i zapis profilu są funkcjami `SECURITY INVOKER` z RLS. Dane wejściowe i odpowiedzi przechodzą Zod. Pobieranie historii jest stronicowane, odczyty mają limit czasu i stany błędu z ponowieniem. Nie dodano zależności ani płatnych usług.
 
 ## Etapy MVP i kryteria ukończenia
 

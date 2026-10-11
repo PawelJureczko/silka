@@ -22,38 +22,25 @@ async function submit() {
 <template>
   <main class="mx-auto flex min-h-dvh max-w-5xl flex-col px-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-8">
     <UiAppBrand />
-    <div class="grid flex-1 items-center gap-10 py-12 sm:gap-16 lg:grid-cols-2 lg:py-20">
+    <div class="grid flex-1 items-center gap-8 py-8 sm:gap-12 lg:grid-cols-2 lg:py-16">
       <div>
-        <span class="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/15 bg-accent/8 px-3 py-2 text-xs font-medium text-accent"><span class="size-1.5 rounded-full bg-accent" /> Twoja przestrzeń do treningu</span>
         <h1 class="text-[clamp(2.7rem,7vw,4.4rem)] leading-[1.05] font-bold tracking-[-0.045em]">
-          Twój trening.<br /><span class="text-accent">Twoje tempo.</span>
+          Każda seria.<br /><span class="text-accent">Zapisana.</span>
         </h1>
-        <p class="mt-6 max-w-sm text-lg leading-relaxed text-secondary">
-          Mniej rozpraszaczy. Więcej miejsca na to, co naprawdę robisz dla siebie.
+        <p class="mt-5 max-w-sm leading-relaxed text-secondary">
+          Plany, ciężary i powtórzenia. Twój dziennik na kolejny trening.
         </p>
-        <div class="mt-8 hidden items-center gap-3 text-sm text-secondary lg:flex">
-          <UiAppIcon
-            name="shield"
-            class="text-accent"
-          /> Twoje plany i wyniki zostają Twoje.
-        </div>
       </div>
       <section
         class="panel w-full p-6 sm:p-8"
         aria-labelledby="login-title"
       >
-        <p class="eyebrow mb-3">
-          Dobrze Cię widzieć
-        </p>
         <h2
           id="login-title"
           class="text-2xl font-semibold tracking-tight"
         >
-          Wracamy do treningu?
+          Zaloguj się
         </h2>
-        <p class="mt-2 text-sm leading-relaxed text-secondary">
-          Zaloguj się na swoje konto.
-        </p>
         <form
           class="mt-7 space-y-5"
           :aria-busy="pending"
@@ -100,7 +87,7 @@ async function submit() {
               />
               <button
                 type="button"
-                class="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-2xl text-secondary hover:text-primary"
+                class="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-md text-secondary hover:text-primary"
                 :aria-label="showPassword ? 'Ukryj hasło' : 'Pokaż hasło'"
                 :aria-pressed="showPassword"
                 :disabled="pending"
@@ -131,10 +118,7 @@ async function submit() {
             :busy="pending"
             :disabled="!configured"
           >
-            {{ pending ? 'Logowanie…' : 'Zaloguj się' }}<UiAppIcon
-              v-if="!pending"
-              name="arrow"
-            />
+            {{ pending ? 'Logowanie…' : 'Zaloguj się' }}
           </UiBaseButton>
         </form>
         <p class="mt-6 text-center text-xs leading-relaxed text-secondary">
@@ -142,8 +126,5 @@ async function submit() {
         </p>
       </section>
     </div>
-    <p class="text-xs text-secondary">
-      Małe kroki. Konkretny progres.
-    </p>
   </main>
 </template>

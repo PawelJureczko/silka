@@ -30,7 +30,7 @@ onBeforeUnmount(() => {
 <template>
   <section
     v-if="endsAt"
-    class="sticky top-3 z-10 mb-5 flex items-center justify-between gap-3 rounded-2xl border border-accent/20 bg-surface p-4 shadow-lg"
+    class="sticky top-3 z-10 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-secondary/60 bg-surface p-4 shadow-lg"
     aria-label="Minutnik odpoczynku"
   >
     <div>

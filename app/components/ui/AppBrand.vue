@@ -1,14 +1,9 @@
 <template>
   <div
-    class="inline-flex items-center gap-3"
+    class="inline-flex items-baseline gap-3"
     aria-label="Siłka"
   >
-    <span class="flex size-10 items-center justify-center rounded-xl bg-accent text-background">
-      <UiAppIcon
-        name="dumbbell"
-        class="size-6"
-      />
-    </span>
-    <span class="text-2xl font-extrabold tracking-tight">siłka<span class="text-accent">.</span></span>
+    <span class="text-3xl font-black tracking-[-0.07em] italic">siłka.</span>
+    <span class="hidden text-xs text-secondary min-[400px]:inline">dziennik siłowy</span>
   </div>
 </template>

@@ -75,7 +75,6 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
     <UiPageHeading
       :eyebrow="session?.planName ?? 'Twoja sesja'"
       :title="session?.workoutName ?? 'Trening'"
-      :description="session?.status === 'active' ? 'Jedna seria na raz. Zapisuj to, co dziś wykonujesz.' : 'Twój trening i zapisane wyniki.'"
     />
     <p
       v-if="loading"
@@ -84,7 +83,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
     >
       Otwieranie treningu…
     </p>
-    <div class="panel mb-5 space-y-3 p-5">
+    <div class="mb-6 space-y-3 border-b border-white/15 pb-5">
       <p
         role="status"
         class="text-sm"
@@ -169,20 +168,26 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
           Podsumowanie jest zapisane lokalnie. Zakończenie na koncie wymaga synchronizacji.
         </p>
       </section>
-      <div class="space-y-5">
+      <div class="space-y-9">
         <section
           v-for="(exercise, ei) in session.exercises"
           :key="exercise.id"
-          class="panel space-y-4 p-5 sm:p-6"
+          class="ledger-section space-y-4"
         >
-          <div>
-            <p class="eyebrow">
-              Ćwiczenie {{ ei + 1 }} / {{ session.exercises.length }}
-            </p><h2 class="mt-2 text-xl font-semibold">
-              {{ exercise.name }}
-            </h2><p class="mt-2 text-sm text-secondary">
-              {{ exercise.equipment }} · {{ ({ total: 'kg łącznie', per_hand: 'kg na rękę', bodyweight: 'masa ciała + dodatkowe kg', assistance: 'kg asysty' })[exercise.weightConvention] }}
-            </p>
+          <div class="flex items-start gap-4">
+            <span
+              class="ledger-number text-5xl text-secondary"
+              aria-hidden="true"
+            >{{ String(ei + 1).padStart(2, '0') }}</span>
+            <div class="min-w-0">
+              <p class="eyebrow">
+                Ćwiczenie {{ ei + 1 }} z {{ session.exercises.length }}
+              </p><h2 class="mt-2 text-2xl font-bold tracking-tight">
+                {{ exercise.name }}
+              </h2><p class="mt-2 text-sm text-secondary">
+                {{ exercise.equipment }} · {{ ({ total: 'kg łącznie', per_hand: 'kg na rękę', bodyweight: 'masa ciała + dodatkowe kg', assistance: 'kg asysty' })[exercise.weightConvention] }}
+              </p>
+            </div>
           </div>
           <p
             v-if="exercise.notes"
@@ -190,6 +195,13 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
           >
             {{ exercise.notes }}
           </p>
+          <LazyWorkoutSuggestion
+            v-if="editable"
+            :exercise="exercise"
+            :started-at="session.startedAt"
+            :session-id="session.id"
+            :disabled="saving > 0 || invalidCount > 0"
+          />
           <p
             v-if="!local?.previous.some(item => item.workoutExerciseId === exercise.id) && session.status === 'active'"
             class="text-xs text-secondary"
@@ -222,7 +234,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
       </div>
       <div
         v-if="session.status === 'active'"
-        class="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] mt-6 flex flex-wrap gap-3 rounded-2xl border border-white/10 bg-background/95 p-3 backdrop-blur"
+        class="mt-8 flex flex-wrap gap-3 border-t border-white/15 bg-background pt-5"
       >
         <UiBaseButton
           class="grow"

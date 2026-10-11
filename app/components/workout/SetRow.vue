@@ -46,8 +46,8 @@ onBeforeUnmount(() => emit('validity', false))
 
 <template>
   <fieldset
-    class="rounded-2xl border p-4"
-    :class="set.status === 'completed' ? 'border-accent/30 bg-accent/5' : 'border-white/10'"
+    class="rounded-lg border p-4"
+    :class="set.status === 'completed' ? 'border-accent/60 bg-surface' : 'border-secondary/50 bg-surface'"
     :disabled="disabled"
   >
     <legend class="px-1 text-sm font-medium">
@@ -89,11 +89,11 @@ onBeforeUnmount(() => emit('validity', false))
       <button
         v-if="set.status !== 'completed' && set.status !== 'skipped'"
         type="button"
-        class="button-primary grow text-sm"
+        class="button-secondary grow text-sm"
         :disabled="busy"
         @click="commit('completed')"
       >
-        ✓ Wykonano
+        Oznacz wykonaną
       </button>
       <button
         v-if="set.status === 'pending'"

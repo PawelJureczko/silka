@@ -2,7 +2,7 @@
 
 Prywatna aplikacja treningowa dla dwóch osób. Założenia produktu i etapy: [PROJECT.md](PROJECT.md). Zasady pracy: [AGENTS.md](AGENTS.md).
 
-Zrealizowano etapy 1–3: Nuxt 4, Vue 3, TypeScript strict, Tailwind 4, mobilną nawigację, Auth, profil i bazę z RLS. Działają katalog, własne ćwiczenia, edytor jednostek i serii, aktywne przypisanie, archiwizacja i przywracanie oraz eksport/import kopii z podglądem. Działa aktywny trening: dashboard, serie, poprzednie wyniki, odpoczynek, lokalny szkic i synchronizacja oraz podsumowanie. Postępy, AI i instalacja PWA są kolejnymi etapami.
+Zrealizowano etapy 1–4: Nuxt 4, Vue 3, TypeScript strict, Tailwind 4, mobilną nawigację, Auth, profil i bazę z RLS. Działają katalog, własne ćwiczenia, edytor jednostek i serii, aktywne przypisanie, archiwizacja i przywracanie oraz eksport/import kopii z podglądem. Działa aktywny trening: dashboard, serie, poprzednie wyniki, odpoczynek, lokalny szkic i synchronizacja oraz podsumowanie. Działają historia z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycja profilu. AI i instalacja PWA są kolejnymi etapami.
 
 ## Uruchomienie z Supabase w chmurze
 
@@ -19,7 +19,7 @@ W tym środowisku `.env` jest już skonfigurowany dla projektu `silka`. Konto do
 
 Panel projektu: https://supabase.com/dashboard/project/dtuyllkefazftqphwfdc
 
-Migracje `20261011000100`–`20261011000600` oraz początkowy `seed.sql` zostały zastosowane w tym projekcie przez SQL Editor; wersje zapisano w `supabase_migrations.schema_migrations`. Potwierdzono 19 wspólnych ćwiczeń, 10 tabel z RLS oraz cztery funkcje planów i cztery funkcje treningów z uprawnieniami wywołującego, dostępne dla `authenticated` i niedostępne dla `anon`. Kolejne zmiany zapisuj jako nowe migracje i stosuj przez Supabase CLI po zalogowaniu oraz powiązaniu z właściwym projektem. Nie uruchamiaj ponownie zastosowanych migracji w istniejącej bazie.
+Migracje `20261011000100`–`20261011000800` oraz początkowy `seed.sql` zostały zastosowane w tym projekcie przez SQL Editor; wersje zapisano w `supabase_migrations.schema_migrations`. Potwierdzono 19 wspólnych ćwiczeń, 10 tabel z RLS oraz cztery funkcje planów, cztery funkcje treningów oraz trzy funkcje postępów i profilu z uprawnieniami wywołującego, dostępne dla `authenticated` i niedostępne dla `anon`. Kolejne zmiany zapisuj jako nowe migracje i stosuj przez Supabase CLI po zalogowaniu oraz powiązaniu z właściwym projektem. Nie uruchamiaj ponownie zastosowanych migracji w istniejącej bazie.
 
 ## Lokalne środowisko bez danych prywatnych
 
@@ -56,14 +56,16 @@ npm run test:db
 npm run test:auth
 npm run test:plans
 npm run test:workouts
+npm run test:progress
 npm run build
 ```
 
-- 11 testów jednostkowych: konfiguracja, Auth, liczby z przecinkiem, limity planu, wersja eksportu, jawne mapowanie, kopiowanie danych Vue, kolejność serii, kolejka i izolacja szkicu, zakończenie oraz timer.
+- 18 testów jednostkowych: konfiguracja, Auth, liczby z przecinkiem, limity planu, wersja eksportu, jawne mapowanie, kopiowanie danych Vue, kolejność serii, kolejka i izolacja szkicu, zakończenie, timer, regularność, walidacja profilu, reguła progresji, granice ciężaru i odrzucenie nieaktualnego podglądu sugestii.
 - 75 testów pgTAP: odczyty i zapisy RLS, podmiana właściciela, obce FK, wspólny i prywatny katalog, integralność serii, historia oraz brak uwierzytelnienia. Dane testu są wycofywane transakcją.
 - Testy integracyjne: rzeczywiste logowanie dwóch lokalnych kont przez Auth i PostgREST, izolacja profili, wylogowanie, błędne hasło i blokada rejestracji.
 - `test:plans`: sześć scenariuszy przez Auth/PostgREST (7 wyników TAP z testem nadrzędnym): atomowy zapis grafu, ponowienie operacji, izolacja dwóch kont i odmowa anonimowa, rollback po błędzie, ścisła walidacja, konflikt rewizji oraz aktywacja/archiwizacja/przywrócenie. Skrypt usuwa wyłącznie własne losowe lokalne rekordy testowe.
 - `test:workouts`: sześć scenariuszy przez Auth/PostgREST (7 wyników TAP z testem nadrzędnym): atomowy i idempotentny start, izolacja dwóch kont i odmowa anonimowa, niezależność snapshotu od edycji planu, walidacja i rollback, stabilne serie, kolejka, konflikt rewizji, zakończenie, podsumowanie tygodnia i zgodne poprzednie wyniki. Skrypt tworzy i usuwa wyłącznie własne losowe lokalne konta testowe.
+- `test:progress`: sześć scenariuszy (7 wyników TAP z nadrzędnym): rekord z całej historii i wykres 30 sesji, rozgrzewki i porzucenie, zgodność sprzętu i konwencji, masa ciała, asysta, niejednoznaczna historia, izolacja dwóch kont i anonima, granica tygodnia w strefie oraz atomowy zapis własnego profilu. Test tworzy i usuwa wyłącznie losowe lokalne konta.
 - Typy bazy: `npm run db:types` generuje `shared/types/database.generated.ts` z działającej lokalnej bazy. Nie edytuj tego pliku ręcznie.
 
 Ręcznie sprawdzono błędne hasło, logowanie obu lokalnych kont, nawigację, sesję po odświeżeniu, wylogowanie, zmianę konta i ochronę bezpośredniego wejścia na prywatny ekran. Widok 390 × 844 nie ma poziomego przewijania; elementy dolnej nawigacji mają wysokość 56 px. Test przeglądarki nie zastępuje testów na fizycznym iPhonie.
@@ -78,7 +80,7 @@ Lista `/plans` udostępnia edytor, katalog oraz import. Formularz zmienia kolejn
 
 ## Aktywny trening
 
-Na Start wybierz jednostkę aktywnego planu i rozpocznij trening. Wpisuj wykonane powtórzenia i ciężar (również z przecinkiem), oznaczaj serie, pomijaj je lub dodawaj kolejne. Poprzednie wyniki są informacją, pola wykonania zaczynają się puste. Wykonana seria uruchamia odpoczynek; timer można wydłużyć o 30 sekund lub zakończyć. Zakończenie wymaga co najmniej jednej wykonanej serii i oznacza pozostałe jako pominięte. Porzucenie zachowuje sesję, ale wyklucza ją z postępów. Szczegóły ostatnich sesji otwierają się z dashboardu; pełna historia należy do etapu 4.
+Na Start wybierz jednostkę aktywnego planu i rozpocznij trening. Wpisuj wykonane powtórzenia i ciężar (również z przecinkiem), oznaczaj serie, pomijaj je lub dodawaj kolejne. Poprzednie wyniki są informacją, pola wykonania zaczynają się puste. Wykonana seria uruchamia odpoczynek; timer można wydłużyć o 30 sekund lub zakończyć. Zakończenie wymaga co najmniej jednej wykonanej serii i oznacza pozostałe jako pominięte. Porzucenie zachowuje sesję, ale wyklucza ją z postępów. Szczegóły ostatnich sesji otwierają się z dashboardu; pełna historia z filtrami jest na ekranie Postępy.
 
 Każda poprawna zmiana trafia najpierw do IndexedDB osobno dla zalogowanego konta, później do transakcyjnego RPC. UI odróżnia zapis lokalny, kolejkę, sukces na koncie i konflikt. Odświeżenie oraz powrót do karty odzyskują szkic; synchronizacja ponawia się po odzyskaniu sieci i podczas pracy w aplikacji. Pierwsze pobranie nowej sesji wymaga połączenia. Przy konflikcie można pobrać szkic wyników i świadomie zastąpić go wersją z konta. Eksport awaryjny nie ma automatycznego importu. Wylogowanie z oczekującymi zmianami wymaga potwierdzenia; szkic pozostaje dostępny tylko po powrocie na to samo konto w tej przeglądarce.
 
@@ -87,6 +89,22 @@ Wymagane są IndexedDB, Web Locks i BroadcastChannel oraz HTTPS lub localhost. N
 Etap 3 sprawdzono na lokalnych kontach w widoku 390 × 844: start, szybkie wpisywanie, przecinek i walidacja, wykonanie serii, dodawanie serii, timer, odświeżenie, poprzednie wyniki, zakończenie i porzucenie. Przy wyłączonym lokalnym API wykonano serię, odświeżono stronę z dostępnymi zasobami aplikacji, odzyskano szkic i timer, zakończono trening i po przywróceniu API wysłano kolejkę bez duplikatów. Sprawdzono konflikt rewizji, jego jawne odrzucenie oraz zachowanie szkicu przez wylogowanie i jego izolację przy zmianie konta. Testy w przeglądarce nie potwierdzają jeszcze zachowania zainstalowanej PWA na fizycznym iPhonie.
 
 Publiczne API projektu w chmurze potwierdza aktywny provider e-mail, wyłączoną rejestrację i odmowę anonimowego odczytu profili (`42501`). Rzeczywistych haseł użytkowników nie używano w automatycznych testach.
+
+## Postępy i profil
+
+Na `/progress` są statystyki 12 tygodni, historia po 20 sesji z filtrami, rekord wybranego wariantu ćwiczenia i wykres do 30 ostatnich zgodnych sesji. Rekord obejmuje całą historię. Liczą się wykonane serie robocze zakończonych treningów; porzucone sesje pozostają wyłącznie w historii. Asysta jest porównywana w przeciwnym kierunku niż zewnętrzny ciężar. Szczegóły jednostek, zakresów i obliczeń są w `PROJECT.md`.
+
+Podczas treningu „Zaproponuj ciężar” sprawdza ostatnią zgodną sesję. Komplet planowanych serii przy jednym ciężarze i górnym zakresie pozwala zaproponować kolejny krok; inaczej propozycja utrzymuje ciężar albo wyjaśnia brak danych. „Zobacz zastosowanie” pokazuje konkretne serie i edytowalny ciężar. Dopiero zatwierdzenie uzupełnia ciężary przez lokalny zapis i kolejkę. Plan i wykonanie serii nie zmieniają się automatycznie.
+
+Profil pozwala ustawić nazwę, cel, strefę czasową i cel tygodnia (domyślnie 3, zakres 1–7). Zmiana celu przelicza prezentowaną regularność. Wyjście z edycji wymaga potwierdzenia odrzucenia formularza.
+
+Etap 4 sprawdzono w przeglądarce w widoku 390 × 844 na lokalnych danych: wykres ciężaru i objętości, rekord, filtry, druga strona historii, zapis profilu, anulowanie i zatwierdzenie edytowanego ciężaru `83,75`, zachowanie po odświeżeniu oraz brak cudzej historii po zmianie konta. Wyłączenie lokalnego API pokazuje błędy odczytu; po jego przywróceniu ponowienie odzyskuje dane. Fikcyjne sesje są wyłącznie w lokalnej bazie. Migracje postępów zastosowano również w chmurze; aplikacja z rzeczywistym kontem pokazuje poprawny pusty stan.
+
+## Kierunek interfejsu
+
+`DESIGN.md` opisuje motyw dziennika treningowego: duże liczby, numerowane plany i ćwiczenia, wynik przed statystykami oraz jedną główną akcję na starcie. Układ ma osobne stany telefonu, tabletu i szerokiego ekranu. Dolna nawigacja przechodzi do nagłówka od 1000 px.
+
+Po zmianie layoutu sprawdzono szerokości 320, 390, 700, 850, 1000 i 1280 px, klawiaturę, dialogi oraz główne przepływy. Szczegóły, kontrast i raport antislop są w `LAYOUT_REVIEW.md`. Weryfikacja zainstalowanej PWA na fizycznym iPhonie pozostaje do wykonania.
 
 ## Statyczny build i hosting
 

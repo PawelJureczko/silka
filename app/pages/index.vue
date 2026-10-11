@@ -1,7 +1,7 @@
 <script setup lang="ts">
 useHead({ title: 'Start — Siłka' })
 const { data: profile, status, error, refresh } = await useProfile()
-const greeting = computed(() => profile.value?.display_name ? `Cześć, ${profile.value.display_name.split(' ')[0]}.` : 'Dobrze Cię widzieć.')
+const greeting = computed(() => profile.value?.display_name ? `Cześć, ${profile.value.display_name.split(' ')[0]}.` : 'Twój trening.')
 const timezone = computed(() => profile.value?.timezone ?? 'Europe/Warsaw')
 const date = computed(() => new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: timezone.value }).format(new Date()))
 </script>
@@ -11,7 +11,6 @@ const date = computed(() => new Intl.DateTimeFormat('pl-PL', { weekday: 'long', 
     <UiPageHeading
       :eyebrow="date"
       :title="greeting"
-      description="Zrób dziś coś dla siebie. Resztę ogarniemy po drodze."
     />
     <div
       v-if="error"

@@ -220,11 +220,20 @@ isOneToOne: false
               "plan_id": string,"revision": number
             }[]
                            },
+"exercise_progress":
+{ Args: { "p_before"?: string,"p_equipment": string,"p_exercise_id": string,"p_load_mode": string,"p_weight_convention": string }; Returns: Json
+                           },
 "plan_number":
 { Args: { "maximum": number,"minimum": number,"value": Json,"whole"?: boolean }; Returns: number
                            },
 "previous_workout_sets":
 { Args: { "p_session_id": string }; Returns: Json
+                           },
+"progress_overview":
+{ Args: { "p_timezone": string }; Returns: Json
+                           },
+"save_profile":
+{ Args: { "p_display_name": string,"p_timezone": string,"p_training_goal": string,"p_weekly_target": number }; Returns: undefined
                            },
 "save_training_plan":
 { Args: { "p_base_revision": number,"p_id": string,"p_operation_id": string,"p_plan": Json }; Returns: {

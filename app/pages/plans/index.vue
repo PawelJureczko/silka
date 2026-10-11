@@ -12,9 +12,8 @@ async function confirmArchive() {
 <template>
   <div>
     <UiPageHeading
-      eyebrow="Twój rytm tygodnia"
-      title="Plany treningowe"
-      description="Ułóż swój plan. Zmieniaj go wtedy, kiedy potrzebujesz."
+      title="Twoje plany."
+      description="Jednostki, ćwiczenia, serie. Wszystko przed wejściem na siłownię."
     />
     <div class="mb-6 flex flex-wrap gap-3">
       <NuxtLink
@@ -26,7 +25,7 @@ async function confirmArchive() {
       >Importuj kopię</NuxtLink><NuxtLink
         to="/plans/catalog"
         class="inline-flex min-h-12 items-center px-2 text-sm font-medium text-secondary"
-      >Katalog ćwiczeń →</NuxtLink>
+      >Katalog ćwiczeń</NuxtLink>
     </div>
     <div
       class="mb-5 flex gap-2"
@@ -35,16 +34,16 @@ async function confirmArchive() {
     >
       <button
         type="button"
-        class="min-h-11 rounded-xl px-4 text-sm"
-        :class="!archived ? 'bg-accent/10 text-accent' : 'text-secondary'"
+        class="min-h-11 border-b-2 px-4 text-sm"
+        :class="!archived ? 'border-accent text-primary' : 'border-transparent text-secondary'"
         :aria-pressed="!archived"
         @click="archived = false"
       >
         Moje plany
       </button><button
         type="button"
-        class="min-h-11 rounded-xl px-4 text-sm"
-        :class="archived ? 'bg-accent/10 text-accent' : 'text-secondary'"
+        class="min-h-11 border-b-2 px-4 text-sm"
+        :class="archived ? 'border-accent text-primary' : 'border-transparent text-secondary'"
         :aria-pressed="archived"
         @click="archived = true"
       >
@@ -84,31 +83,32 @@ async function confirmArchive() {
       />
       <div
         v-else
-        class="grid gap-4 sm:grid-cols-2"
+        class="border-b border-white/15"
       >
         <article
-          v-for="plan in data.plans"
+          v-for="(plan, index) in data.plans"
           :key="plan.id"
-          class="panel flex flex-col p-5 sm:p-6"
+          class="plan-entry"
         >
-          <div class="mb-5 flex items-center justify-between">
-            <UiAppIcon
-              name="plan"
-              class="text-accent"
-            /><span
+          <span
+            class="ledger-number pt-1 text-3xl text-secondary sm:text-4xl"
+            aria-hidden="true"
+          >{{ String(page * planPageSize + index + 1).padStart(2, '0') }}</span>
+          <div class="min-w-0">
+            <span
               v-if="plan.id === data.activeId"
-              class="rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent"
+              class="mb-2 inline-block text-xs font-semibold text-accent"
             >Aktywny plan</span>
+            <h2 class="text-2xl font-bold tracking-tight break-words">
+              {{ plan.name }}
+            </h2><p
+              v-if="plan.description"
+              class="mt-2 text-sm leading-relaxed break-words text-secondary"
+            >
+              {{ plan.description }}
+            </p>
           </div>
-          <h2 class="text-xl font-semibold break-words">
-            {{ plan.name }}
-          </h2><p
-            v-if="plan.description"
-            class="mt-2 line-clamp-3 text-sm leading-relaxed break-words text-secondary"
-          >
-            {{ plan.description }}
-          </p>
-          <div class="mt-auto flex flex-wrap gap-2 pt-6">
+          <div class="plan-entry-actions">
             <template v-if="!archived">
               <NuxtLink
                 :to="`/plans/${plan.id}`"

@@ -1,6 +1,9 @@
 import { fetchWorkoutDashboard } from '~/services/workouts'
 
 export async function useWorkoutDashboard(timezone: MaybeRefOrGetter<string>) {
+  onMounted(() => {
+    void refresh()
+  })
   const client = usePlanClient()
   const { user } = useAuthState()
   const workout = useWorkoutSync()
@@ -25,8 +28,5 @@ export async function useWorkoutDashboard(timezone: MaybeRefOrGetter<string>) {
       starting.value = false
     }
   }
-  onMounted(() => {
-    void refresh()
-  })
   return { ...result, ...workout, queryError: result.error, refresh, resumeId, starting, begin }
 }

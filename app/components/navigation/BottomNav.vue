@@ -1,29 +1,34 @@
 <script setup lang="ts">
+const route = useRoute()
 const items = [
   { to: '/', label: 'Start', icon: 'home' },
   { to: '/plans', label: 'Plany', icon: 'plan' },
   { to: '/progress', label: 'Postępy', icon: 'progress' },
   { to: '/profile', label: 'Profil', icon: 'user' },
 ] as const
+function isActive(to: string) {
+  return to === '/' ? route.path === '/' || route.path.startsWith('/workouts/') : route.path === to || route.path.startsWith(`${to}/`)
+}
 </script>
 
 <template>
   <nav
     aria-label="Główna nawigacja"
-    class="fixed inset-x-0 bottom-0 z-20 border-t border-white/8 bg-background/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:inset-x-auto sm:bottom-5 sm:left-1/2 sm:w-[440px] sm:-translate-x-1/2 sm:rounded-3xl sm:border sm:bg-surface/95 sm:px-3 sm:pb-2"
+    class="fixed inset-x-0 bottom-0 z-20 border-t border-white/15 bg-background px-3 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] min-[1000px]:static min-[1000px]:border-0 min-[1000px]:p-0"
   >
-    <div class="grid grid-cols-4">
+    <div class="mx-auto grid max-w-lg grid-cols-4 gap-2 min-[1000px]:flex min-[1000px]:gap-1">
       <NuxtLink
         v-for="item in items"
         :key="item.to"
-        v-slot="{ isExactActive }"
         :to="item.to"
-        class="flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-medium text-secondary transition-colors hover:text-primary"
-        exact-active-class="bg-accent/8 text-accent"
+        :aria-current="isActive(item.to) ? 'page' : undefined"
+        class="flex min-h-14 flex-col items-center justify-center gap-1 border-t-2 text-xs font-medium transition-colors hover:text-primary min-[1000px]:min-h-11 min-[1000px]:flex-row min-[1000px]:gap-2 min-[1000px]:px-4 min-[1000px]:text-sm"
+        :class="isActive(item.to) ? 'border-accent text-primary' : 'border-transparent text-secondary'"
       >
         <UiAppIcon
           :name="item.icon"
-          :stroke-width="isExactActive ? 2 : 1.7"
+          :stroke-width="isActive(item.to) ? 2.5 : 1.8"
+          class="size-5 min-[1000px]:size-4"
         />
         {{ item.label }}
       </NuxtLink>
