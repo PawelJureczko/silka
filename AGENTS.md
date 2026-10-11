@@ -6,7 +6,7 @@ Przeczytaj `PROJECT.md` przed zmianami. Jest źródłem założeń produktu, arc
 
 Pracujemy nad prywatną, bezpłatną aplikacją treningową PWA dla dwóch osób. Priorytety to poprawny zapis treningu, izolacja danych, wygoda na iPhonie i koszt 0 zł.
 
-Stan na utworzenie tych instrukcji: repozytorium zawiera dokumentację etapu 0. Nie ma jeszcze aplikacji, zależności, migracji ani skryptów. Nie traktuj proponowanej struktury jako opisu już istniejących plików.
+Stan po etapie 1: istnieje fundament Nuxt 4/Vue 3/TypeScript/Tailwind, Auth, nawigacja i migracja bazy z RLS. Plany i postępy mają ekrany informacyjne; pozostałe funkcje są planowane. Instrukcje uruchomienia i konfiguracji są w `README.md`. Nie traktuj docelowej struktury jako opisu już istniejących plików.
 
 - Wykonuj zakres wynikający z bieżącego zlecenia i wcześniejszych ustaleń w sesji.
 - Gdy użytkownik zatwierdził etap lub działanie, kontynuuj je bez ponownego pytania o tę samą zgodę.
@@ -112,7 +112,7 @@ Stan na utworzenie tych instrukcji: repozytorium zawiera dokumentację etapu 0. 
 
 ## Weryfikacja i dokumentacja
 
-Na etapie 0 nie ma poleceń aplikacji. Nie deklaruj uruchomienia builda, linta, typechecka lub testów, jeśli ich nie ma albo nie zostały wykonane. Po inicjalizacji korzystaj ze skryptów faktycznie zapisanych w `package.json` i uzupełnij tę sekcję o ich nazwy.
+Używaj Node 22 z `.nvmrc` i npm z `package-lock.json`. Sprawdzenia: `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:db`, `npm run test:auth`, `npm run build`. Testy bazy i Auth wymagają lokalnego Supabase przez Docker. `npm run db:types` generuje typy rzeczywistej bazy. `npm run dev:local` używa `.env.local`, a `npm run dev` chmurowego `.env`. Nie deklaruj uruchomienia sprawdzeń, które nie zostały wykonane.
 
 - Dobieraj sprawdzenia do ryzyka zmiany. Proste zmiany dokumentacji nie wymagają testów aplikacji.
 - Testuj istotne reguły domenowe i przypadki graniczne, a nie implementacyjne szczegóły komponentów.

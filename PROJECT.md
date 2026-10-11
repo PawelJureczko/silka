@@ -6,7 +6,11 @@ Siłka to bezpłatna aplikacja PWA do planowania treningów siłowych i śledzen
 
 Repozytorium: https://github.com/PawelJureczko/silka
 
-Etap 0 obejmuje dokumentację projektu i zasad pracy. Implementacja aplikacji, konfiguracja usług oraz migracje bazy są kolejnymi etapami. Ten dokument opisuje zatwierdzony kierunek, a nie już istniejące funkcje.
+Etap 0 (dokumentacja) jest zapisany na GitHub. Etap 1 dodaje fundament aplikacji: Nuxt 4, TypeScript strict, Tailwind 4, logowanie, odczyt profilu, mobilną nawigację oraz migrację z RLS. Plany i postępy mają na razie ekrany informacyjne. Pozostałe funkcje opisane niżej są planowane.
+
+Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
+
+Projekt Supabase `silka` działa na Free w eu-west-1. Pierwsza migracja i techniczny katalog trzech ćwiczeń są zastosowane; RLS chroni 10 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; automatyczne testy logowania dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Wdrożenie Vercel oraz PWA nie zostały wykonane.
 
 Stan sprawdzony 11 października 2026: lokalny katalog był pusty i nie był checkoutem Git. GitHub zwracał publiczne repozytorium bez gałęzi domyślnej, o rozmiarze 0 KB. Przy przygotowaniu dokumentacji nie inicjalizowano aplikacji ani usług.
 
@@ -183,14 +187,14 @@ Każda prywatna tabela ma `user_id`. Identyfikatory są UUID. W tabelach edytowa
 | Tabela | Główne pola poza identyfikatorami i znacznikami czasu |
 | --- | --- |
 | `profiles` | `user_id` jako PK i FK do `auth.users`, `display_name`, `training_goal`, `timezone`, `preferences` |
-| `exercises` | `owner_id` nullable, `name`, `equipment`, `muscle_group`, `load_mode`, `weight_increment_kg`, `archived_at` |
+| `exercises` | `owner_id` nullable, `name`, `equipment`, `muscle_group`, `load_mode`, `weight_convention`, `weight_increment_kg`, `archived_at` |
 | `training_plans` | `user_id`, `name`, `description`, `revision`, `archived_at` |
 | `plan_assignments` | `user_id`, `plan_id`, `is_active`, `starts_on` |
 | `plan_workouts` | `user_id`, `plan_id`, `name`, `position`, opcjonalny `weekday` |
 | `plan_exercises` | `user_id`, `plan_workout_id`, `exercise_id`, `position`, `rest_seconds`, `notes` |
 | `plan_sets` | `user_id`, `plan_exercise_id`, `position`, `set_type`, `reps_min`, `reps_max`, `target_weight_kg` nullable |
 | `workout_sessions` | `user_id`, `plan_id` nullable, `plan_revision_snapshot`, `plan_name_snapshot`, `workout_name_snapshot`, `started_at`, `finished_at` nullable, `status`, `revision` |
-| `workout_exercises` | `user_id`, `session_id`, `exercise_id`, `exercise_name_snapshot`, `equipment_snapshot`, `load_mode_snapshot`, `position`, `rest_seconds`, `notes` |
+| `workout_exercises` | `user_id`, `session_id`, `exercise_id`, `exercise_name_snapshot`, `equipment_snapshot`, `load_mode_snapshot`, `weight_convention_snapshot`, `position`, `rest_seconds`, `notes` |
 | `workout_sets` | `user_id`, `workout_exercise_id`, `position`, `set_type`, planowane zakresy i ciężar, `reps` nullable, `weight_kg` nullable, `status`, `completed_at` nullable |
 
 Relacje:
@@ -217,6 +221,7 @@ exercises → workout_exercises
 - Ciężary używają `numeric`, nie typu zmiennoprzecinkowego. Zero jest dozwolone; brak wartości nie jest utożsamiany z zerem.
 - Liczba powtórzeń, zakresy, kolejność i odpoczynek mają ograniczenia w bazie. Wykonana seria wymaga poprawnych danych dla jej sposobu liczenia obciążenia.
 - `load_mode` rozróżnia m.in. obciążenie zewnętrzne, masę ciała i asystę. Większa asysta nie oznacza większej siły. Sposób zapisu ciężaru, np. na jedną hantlę albo łączny, jest określony dla ćwiczenia.
+- `weight_convention` przyjmuje `total`, `per_hand`, `bodyweight` lub `assistance`, zgodnie z `load_mode`; sesja zachowuje tę wartość jako snapshot. Rewizje rosną przy zmianie wiersza planu lub sesji. Operacje edycji grafu w kolejnych etapach muszą zmienić korzeń raz, atomowo z elementami podrzędnymi.
 - Czas zapisujemy jako `timestamptz`; dni i tygodnie prezentujemy według strefy użytkownika.
 - Rekordy, objętość i statystyki wyliczamy z wykonanych serii zakończonych sesji. Nie tworzymy osobnej tabeli rekordów w MVP.
 
@@ -402,7 +407,7 @@ Plan kopii danych: możliwość eksportu własnych danych z aplikacji, ręczny b
 
 ## Decyzje pozostawione do odpowiedniego etapu
 
-- Dokładne wersje zależności, menedżer pakietów i zgodny moduł PWA — przy inicjalizacji projektu.
+- Zgodny moduł PWA — przy etapie instalacji iOS, na podstawie istniejącej wersji Nuxt.
 - Początkowy katalog ćwiczeń i sposób zapisu obciążenia dla każdego z nich — przy edytorze planów.
 - Ostateczne reguły sugestii ciężarów i definicje rekordów — przy postępach.
 - Konfiguracja odzyskiwania konta, harmonogram kopii i procedura odtworzenia — przed wydaniem.

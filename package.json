@@ -1,0 +1,41 @@
+{
+  "name": "silka",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.22.3 <23" },
+  "scripts": {
+    "dev": "nuxt dev --host 127.0.0.1",
+    "dev:local": "nuxt dev --host 127.0.0.1 --dotenv .env.local",
+    "build": "nuxt generate",
+    "preview": "nuxt preview --host 127.0.0.1",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint .",
+    "test": "node --test tests/unit/*.test.mjs",
+    "test:db": "supabase test db",
+    "test:auth": "node --test tests/integration/auth.test.mjs",
+    "db:start": "supabase start -x realtime,storage-api,imgproxy,edge-runtime,logflare,vector,supavisor",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset --local",
+    "db:types": "node scripts/generate-db-types.mjs",
+    "dev:setup": "node scripts/setup-local.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "vue": "^3.5.0",
+    "vue-router": "^5.4.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "eslint": "^10.0.0",
+    "nuxt": "^4.0.0",
+    "supabase": "^2.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.9.0",
+    "vue-tsc": "^3.0.0"
+  },
+  "overrides": { "simple-git": "4.0.2" }
+}

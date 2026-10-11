@@ -1,0 +1,13 @@
+node_modules/
+.nuxt/
+.output/
+dist
+.data/
+.env
+.env.*
+!.env.example
+.DS_Store
+coverage/
+supabase/.temp/
+supabase/.branches/
+*.log
