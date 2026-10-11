@@ -122,14 +122,14 @@ isOneToOne: false
                   ]
                 },"training_plans": {
                   Row: {
-                    "archived_at": string | null,"created_at": string,"description": string,"id": string,"name": string,"revision": number,"updated_at": string,"user_id": string
+                    "archived_at": string | null,"created_at": string,"description": string,"id": string,"last_operation_hash": string | null,"last_operation_id": string | null,"name": string,"revision": number,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"created_at"?: string,"description"?: string,"id"?: string,"name": string,"revision"?: number,"updated_at"?: string,"user_id"?: string
+                    "archived_at"?: string | null,"created_at"?: string,"description"?: string,"id"?: string,"last_operation_hash"?: string | null,"last_operation_id"?: string | null,"name": string,"revision"?: number,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "archived_at"?: string | null,"created_at"?: string,"description"?: string,"id"?: string,"name"?: string,"revision"?: number,"updated_at"?: string,"user_id"?: string
+                    "archived_at"?: string | null,"created_at"?: string,"description"?: string,"id"?: string,"last_operation_hash"?: string | null,"last_operation_id"?: string | null,"name"?: string,"revision"?: number,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
 
@@ -206,7 +206,28 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "activate_training_plan":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"archive_training_plan":
+{ Args: { "p_archived": boolean,"p_base_revision": number,"p_id": string }; Returns: undefined
+                           },
+"assert_plan_keys":
+{ Args: { "expected": (string)[],"value": Json }; Returns: undefined
+                           },
+"create_training_plan":
+{ Args: { "p_id": string,"p_operation_id": string,"p_plan": Json }; Returns: {
+              "plan_id": string,"revision": number
+            }[]
+                           },
+"plan_number":
+{ Args: { "maximum": number,"minimum": number,"value": Json,"whole"?: boolean }; Returns: number
+                           },
+"save_training_plan":
+{ Args: { "p_base_revision": number,"p_id": string,"p_operation_id": string,"p_plan": Json }; Returns: {
+              "plan_id": string,"revision": number
+            }[]
+                           }
           }
           Enums: {
             [_ in never]: never

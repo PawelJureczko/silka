@@ -6,7 +6,7 @@ Przeczytaj `PROJECT.md` przed zmianami. Jest źródłem założeń produktu, arc
 
 Pracujemy nad prywatną, bezpłatną aplikacją treningową PWA dla dwóch osób. Priorytety to poprawny zapis treningu, izolacja danych, wygoda na iPhonie i koszt 0 zł.
 
-Stan po etapie 1: istnieje fundament Nuxt 4/Vue 3/TypeScript/Tailwind, Auth, nawigacja i migracja bazy z RLS. Plany i postępy mają ekrany informacyjne; pozostałe funkcje są planowane. Instrukcje uruchomienia i konfiguracji są w `README.md`. Nie traktuj docelowej struktury jako opisu już istniejących plików.
+Stan po etapie 2: istnieje fundament Nuxt 4/Vue 3/TypeScript/Tailwind, Auth, nawigacja i baza z RLS. Działają katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany import niezależnej kopii. Aktywny trening, postępy, AI i PWA są planowane. Instrukcje uruchomienia i konfiguracji są w `README.md`. Nie traktuj docelowej struktury jako opisu już istniejących plików.
 
 - Wykonuj zakres wynikający z bieżącego zlecenia i wcześniejszych ustaleń w sesji.
 - Gdy użytkownik zatwierdził etap lub działanie, kontynuuj je bez ponownego pytania o tę samą zgodę.
@@ -112,7 +112,7 @@ Stan po etapie 1: istnieje fundament Nuxt 4/Vue 3/TypeScript/Tailwind, Auth, naw
 
 ## Weryfikacja i dokumentacja
 
-Używaj Node 22 z `.nvmrc` i npm z `package-lock.json`. Sprawdzenia: `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:db`, `npm run test:auth`, `npm run build`. Testy bazy i Auth wymagają lokalnego Supabase przez Docker. `npm run db:types` generuje typy rzeczywistej bazy. `npm run dev:local` używa `.env.local`, a `npm run dev` chmurowego `.env`. Nie deklaruj uruchomienia sprawdzeń, które nie zostały wykonane.
+Używaj Node 22 z `.nvmrc` i npm z `package-lock.json`. Sprawdzenia: `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:db`, `npm run test:auth`, `npm run test:plans`, `npm run build`. Testy bazy i Auth wymagają lokalnego Supabase przez Docker. `npm run db:types` generuje typy rzeczywistej bazy. `npm run dev:local` używa `.env.local`, a `npm run dev` chmurowego `.env`. Nie deklaruj uruchomienia sprawdzeń, które nie zostały wykonane.
 
 - Dobieraj sprawdzenia do ryzyka zmiany. Proste zmiany dokumentacji nie wymagają testów aplikacji.
 - Testuj istotne reguły domenowe i przypadki graniczne, a nie implementacyjne szczegóły komponentów.

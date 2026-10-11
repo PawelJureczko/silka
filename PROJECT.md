@@ -6,11 +6,13 @@ Siłka to bezpłatna aplikacja PWA do planowania treningów siłowych i śledzen
 
 Repozytorium: https://github.com/PawelJureczko/silka
 
-Etap 0 (dokumentacja) jest zapisany na GitHub. Etap 1 dodaje fundament aplikacji: Nuxt 4, TypeScript strict, Tailwind 4, logowanie, odczyt profilu, mobilną nawigację oraz migrację z RLS. Plany i postępy mają na razie ekrany informacyjne. Pozostałe funkcje opisane niżej są planowane.
+Etapy 0 (dokumentacja) i 1 (fundament) są zapisane na GitHub. Etap 2 dodaje katalog ćwiczeń, prywatne ćwiczenia własne, edytor jednostek i serii, aktywny plan, archiwum oraz eksport/import niezależnej kopii z podglądem i zatwierdzeniem. Pozostałe funkcje opisane niżej są planowane.
 
 Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
 
-Projekt Supabase `silka` działa na Free w eu-west-1. Pierwsza migracja i techniczny katalog trzech ćwiczeń są zastosowane; RLS chroni 10 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; automatyczne testy logowania dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Wdrożenie Vercel oraz PWA nie zostały wykonane.
+Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 10 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Wdrożenie Vercel oraz PWA nie zostały wykonane.
+
+Migracje fundamentu i planów (`20261011000100`, `20261011000200`, `20261011000300`) są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. Cztery RPC planów działają jako `SECURITY INVOKER` i wymagają uwierzytelnienia. Fikcyjne plany i ćwiczenia do testów nie były zapisywane w chmurze.
 
 Stan sprawdzony 11 października 2026: lokalny katalog był pusty i nie był checkoutem Git. GitHub zwracał publiczne repozytorium bez gałęzi domyślnej, o rozmiarze 0 KB. Przy przygotowaniu dokumentacji nie inicjalizowano aplikacji ani usług.
 
@@ -360,6 +362,14 @@ Przykład odpowiedzi dla utworzenia planu. UUID są przykładowe; w rzeczywistej
 
 Zwykły eksport/import kopii planu jest osobnym przepływem od konsultacji AI. Przenosi dane planu, nie tożsamość ani historię właściciela; tworzy nowy własny plan po podglądzie i zatwierdzeniu. Mapowanie ćwiczeń własnych drugiej osoby wymaga jawnej decyzji odbiorcy.
 
+### Zaimplementowany eksport kopii planu v1
+
+Osobny kontrakt `format: "silka-plan"`, `schemaVersion: 1` zawiera `plan` zgodny z powyższą strukturą oraz `exercises`: opisy wyłącznie użytych ćwiczeń (`id`, `name`, `equipment`, `muscleGroup`, `loadMode`, `weightConvention`, `weightIncrementKg`). Nie zawiera identyfikatora konta, e-maila ani historii. Notatki do ćwiczeń i opis planu są częścią kopii, co UI pokazuje przed eksportem. Limit całego pliku wynosi 256 KiB UTF-8. Nieznane pola, wersje, brakujące, nieużyte lub powtórzone opisy ćwiczeń są odrzucane.
+
+Importer dopasowuje dostępne ćwiczenia po ID i zgodnej konwencji obciążenia. Pozostałe wymagają jawnego wyboru lub utworzenia własnego ćwiczenia. Zatwierdzenie zapisuje nowy plan „… — kopia”; nie ustawia go automatycznie jako aktywnego. Anulowanie podglądu nie zapisuje planu. Osobno zatwierdzone dodanie ćwiczenia do katalogu pozostaje na koncie.
+
+Zapis całego planu, aktywacja i archiwizacja są transakcyjnymi RPC działającymi z RLS wywołującego. Zapis używa bazowej rewizji i stabilnego ID operacji; ponowienie ostatniego zapisu z identycznymi danymi zwraca istniejący wynik. Zmiana danych pod tym samym ID operacji jest odrzucana. Nieaktualna rewizja blokuje nadpisanie. Po nowszej operacji wymagany jest ponowny odczyt. Archiwizacja usuwa aktywne przypisanie, a przywrócenie go nie odtwarza. Edytor planów wymaga sieci; lokalne zabezpieczenie aktywnego treningu należy do etapu 3.
+
 ## Etapy MVP i kryteria ukończenia
 
 | Etap | Zakres | Kryterium ukończenia |
@@ -408,7 +418,7 @@ Plan kopii danych: możliwość eksportu własnych danych z aplikacji, ręczny b
 ## Decyzje pozostawione do odpowiedniego etapu
 
 - Zgodny moduł PWA — przy etapie instalacji iOS, na podstawie istniejącej wersji Nuxt.
-- Początkowy katalog ćwiczeń i sposób zapisu obciążenia dla każdego z nich — przy edytorze planów.
+- Katalog startowy obejmuje 19 ćwiczeń z jawną konwencją obciążenia; użytkownik może dodać prywatne ćwiczenia. Dalsze rozszerzenia katalogu dodajemy migracjami.
 - Ostateczne reguły sugestii ciężarów i definicje rekordów — przy postępach.
 - Konfiguracja odzyskiwania konta, harmonogram kopii i procedura odtworzenia — przed wydaniem.
 - Współdzielenie postępów i wspólna edycja — po MVP, przez osobny model dostępu i migracje RLS.

@@ -28,6 +28,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: { supabaseUrl: '', supabaseKey: '' },
   },
+  buildDir: process.env.SILKA_TEST_BUILD_DIR || '.nuxt',
   compatibilityDate: '2026-10-11',
   vite: { plugins: [tailwindcss()] },
   typescript: { strict: true, typeCheck: false },
