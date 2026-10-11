@@ -151,6 +151,7 @@ onBeforeRouteLeave(() => !editing.value || (!saving.value && window.confirm('Odr
     >
       {{ success }}
     </p>
+    <ProfilePwaSettings :editing="editing || saving" />
     <p class="my-7 max-w-md border-t border-white/15 pt-5 text-sm leading-relaxed text-secondary">
       Plany i historia należą do tego konta. Przekazanie komuś kopii planu nie udostępnia Twoich wyników.
     </p>

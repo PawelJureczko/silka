@@ -1,6 +1,7 @@
 node_modules/
 .nuxt/
 .nuxt-local/
+.nuxt-pwa-test/
 .output/
 dist
 .data/

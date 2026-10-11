@@ -6,13 +6,13 @@ Siłka to bezpłatna aplikacja PWA do planowania treningów siłowych i śledzen
 
 Repozytorium: https://github.com/PawelJureczko/silka
 
-Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany eksport/import kopii. Etap 3 dodaje dashboard, rozpoczęcie i wznowienie sesji, wykonane serie, poprzednie wyniki, timer, lokalny szkic z kolejką oraz zakończenie i porzucenie z podsumowaniem. Etap 4 dodaje historię z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycję profilu. AI i instalacja PWA są planowane.
+Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany eksport/import kopii. Etap 3 dodaje dashboard, rozpoczęcie i wznowienie sesji, wykonane serie, poprzednie wyniki, timer, lokalny szkic z kolejką oraz zakończenie i porzucenie z podsumowaniem. Etap 4 dodaje historię z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycję profilu. Etap 5 dodaje ręczne konsultacje AI: cztery akcje JSON v1, prompt, walidację, podgląd i zatwierdzany zapis. Etap 6 ma zaimplementowany manifest, ikony, lokalne otwieranie aplikacji i ręczne aktualizacje. Wdrożenie HTTPS oraz weryfikacja na fizycznym iPhonie pozostają do wykonania.
 
 Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
 
-Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 10 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Wdrożenie Vercel oraz PWA nie zostały wykonane.
+Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 11 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Formularz importu repozytorium w Vercel Hobby jest otwarty; wdrożenie nie zostało wykonane.
 
-Migracje `20261011000100`–`20261011000800` są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. Cztery RPC planów, cztery RPC treningów oraz trzy RPC postępów i profilu działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
+Migracje `20261011000100`–`20261011001000` są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. RPC planów, treningów, postępów, profilu i konsultacji działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
 
 Stan sprawdzony 11 października 2026: lokalny katalog był pusty i nie był checkoutem Git. GitHub zwracał publiczne repozytorium bez gałęzi domyślnej, o rozmiarze 0 KB. Przy przygotowaniu dokumentacji nie inicjalizowano aplikacji ani usług.
 
@@ -66,7 +66,7 @@ Poza MVP pozostają wspólna edycja planów, dostęp do cudzych postępów, publ
 | Dane i konta | Supabase PostgreSQL, Supabase Auth, RLS |
 | Walidacja danych wejściowych | Zod, z typami wyprowadzanymi ze schematów |
 | Hosting | Statyczne wdrożenie na Vercel Hobby |
-| PWA | Manifest i service worker; moduł dobrany po sprawdzeniu zgodności z wybraną wersją Nuxt 4 |
+| PWA | Manifest i natywny service worker generowany z listy plików statycznego builda Nuxt; bez dodatkowej zależności |
 | Stan współdzielony | Composables; Pinia, jeśli potrzebuje jej aktywny trening |
 | Zapis lokalny | IndexedDB dla szkicu sesji i oczekujących operacji |
 | Sprawdzenia | Typecheck, lint, testy reguł domenowych, RLS i kluczowych przepływów |
@@ -259,6 +259,16 @@ Zasady odporności:
 - Service worker cache'uje zasoby aplikacji, nie odpowiedzi Auth ani prywatne dane API. Dane treningu trafiają do kontrolowanego magazynu lokalnego.
 - Aktualizacja PWA nie przeładowuje strony automatycznie podczas aktywnego treningu. Najpierw zabezpieczamy dane i pokazujemy możliwość aktualizacji.
 
+### Zaimplementowana część etapu 6
+
+- `npm run build` po generowaniu Nuxt uruchamia `scripts/build-pwa.mjs`. Worker otrzymuje ID builda i listę wyłącznie statycznych plików: publiczny HTML aplikacji, chunki Nuxta, manifest i ikony. Precache obejmuje również leniwie ładowane widoki, żeby trening otwierał się po pełnym odświeżeniu bez serwera. Nie przechwytuje zewnętrznych żądań, API/Auth ani metod innych niż GET; nie zapisuje odpowiedzi pobieranych w czasie pracy.
+- Manifest używa `display: standalone`, ikon PNG 192/512 oraz ikony Apple 180. Ikony wykorzystują dotychczasowy symbol hantla. Profil podaje instalację przez Safari i pokazuje natywny przycisk tylko tam, gdzie przeglądarka udostępni zdarzenie instalacyjne.
+- Supabase inicjalizuje się w tle. Minimalne, zwalidowane ID/e-mail z istniejącego magazynu SDK umożliwiają natychmiastowe otwarcie własnego lokalnego dziennika. Nie kopiujemy tokenów, nie zastępujemy Auth ani RLS. Wylogowanie i terminalne odrzucenie sesji przez SDK usuwają bieżącą tożsamość z UI.
+- Nowy worker czeka. Przycisk w profilu aktywuje go wyłącznie po odczytaniu wszystkich lokalnych dzienników. Aktywna sesja, rozpoczęcie, kolejka, konflikt, uszkodzony dziennik albo błąd odczytu blokują aktualizację. Wspólna blokada Web Locks chroni odczyt i aktywację przed równoległym zapisem treningu z innej karty. Edycja profilu blokuje przyciski aktualizacji w tym widoku.
+- Przeładowuje się tylko karta, w której użytkownik uruchomił aktualizację. Inne karty zachowują formularze i dostęp do poprzednich chunków. Stary cache jest usuwany dopiero, gdy jedyna otwarta karta potwierdzi zgodność swojego ID builda z workerem. Automatyczne przeładowania Nuxta przy zmianie manifestu/chunków są wyłączone.
+- Worker nie zastępuje backupu. Wyczyszczenie danych witryny lub usunięcie ich przez system może usunąć niewysłany trening. Pierwsze logowanie, pobranie sesji, plany, historia i konsultacje AI wymagają sieci. Nie dodano Background Sync, push ani alarmów timera przy zablokowanym ekranie.
+- Lokalny test produkcyjnego builda: odcięcie serwera statycznego oraz API, odświeżenie, zapis `10 × 83,75 kg`, odtworzenie timera, zakończenie, odzyskanie po zmianie konta i synchronizacja bez duplikatów. Dwa buildy potwierdziły blokady aktualizacji i zachowanie niezapisanego formularza w drugiej karcie. Nie jest to test trybu samolotowego ani zainstalowanej PWA na iOS. Dowody i pozostałe kroki są w `PWA_REVIEW.md` oraz `README.md`.
+
 ### Zaimplementowane zachowanie etapu 3
 
 - Start zapisuje lokalnie zamiar ze stabilnym UUID, następnie RPC atomowo kopiuje jednostkę z konkretnej rewizji planu. Nie podstawia planowanego ciężaru jako wykonanego. Pierwsze pobranie sesji wymaga sieci. Ponowienie po utracie odpowiedzi zwraca istniejącą sesję.
@@ -295,7 +305,7 @@ Obsługiwane cele konsultacji:
 ### Przepływ konsultacji
 
 1. Użytkownik wybiera cel, plan i zakres historii.
-2. Aplikacja tworzy `requestId`, zachowuje kontekst konsultacji lokalnie dla danego konta i generuje prompt.
+2. Aplikacja tworzy `requestId`; RPC zapisuje kontekst na koncie w prywatnej tabeli z RLS. Aplikacja generuje prompt z tego kontekstu.
 3. Prompt zawiera potrzebne dane, katalog dozwolonych ćwiczeń, jednostki, kontrakt JSON oraz instrukcję zwrócenia samego JSON.
 4. Użytkownik kopiuje prompt i wkleja go do wybranego LLM. Przy braku dostępu do schowka aplikacja udostępnia tekst do ręcznego skopiowania.
 5. Użytkownik wkleja odpowiedź do Siłki.
@@ -304,6 +314,16 @@ Obsługiwane cele konsultacji:
 8. Dopiero zatwierdzenie wykonuje dozwoloną zmianę atomowo.
 
 Domyślnie eksport nie zawiera e-maila, identyfikatora konta, danych drugiej osoby ani prywatnych notatek. Historia ma jawny i ograniczony zakres. Użytkownik może obejrzeć cały prompt przed skopiowaniem.
+
+### Zaimplementowane zachowanie etapu 5
+
+- Konsultacje otwiera się z listy planów lub z zapisanego planu w edytorze. Zakres historii to 0, 10 albo 20 ostatnich zakończonych sesji; zawiera tylko wykonane serie. Katalog obejmuje do 200 dostępnych, niearchiwalnych ćwiczeń, z pierwszeństwem ćwiczeń wybranego planu. Formularz planów pokazuje 20 ostatnio edytowanych; starszy plan można wskazać z edytora.
+- `ai_consultations` przechowuje właściciela z Auth, akcję, opcjonalny plan i bazową rewizję, kontekst, stabilne ID nowego planu oraz wynik zatwierdzenia. Relacja do planu zawiera `user_id`. Zapis na koncie umożliwia powrót po odświeżeniu i w innej karcie oraz ponowną walidację kontekstu przez RPC; zastępuje planowany wcześniej magazyn lokalny konsultacji.
+- Lista powrotu obejmuje 10 ostatnich konsultacji. Kontekst zawiera prywatny snapshot planu potrzebny do porównania; generowany prompt usuwa opis i notatki. JSON Schema promptu powstaje z tej samej definicji Zod co walidacja odpowiedzi. Opcjonalne własne instrukcje są przenoszone do promptu zgodnie z wyborem użytkownika.
+- Wklejony tekst i niezatwierdzony podgląd istnieją tylko w pamięci strony. Opuszczenie widoku ostrzega o ich odrzuceniu. Zatwierdzona odpowiedź i wynik pozostają na koncie; zachowaną analizę można odczytać ponownie.
+- Utworzenie planu nie aktywuje go. Zamiana obejmuje cały plan, w tym opis i notatki; podgląd jawnie pokazuje ich zmianę lub usunięcie. Analiza nie modyfikuje planu ani historii. Progresja pozwala przypisać każdą sugestię do jednej zgodnej serii planu lub ją pominąć; powtórzenia, odpoczynek i notatki pozostają bez zmian.
+- `prepare_ai_consultation`, wariant bez planu i `apply_ai_response` działają z RLS wywołującego. Przygotowanie i zatwierdzenie są idempotentne. Zapis całego grafu i wyniku konsultacji jest jedną transakcją; rewizja, katalog, akcja, pola, liczby i limit 256 KiB są ponownie sprawdzane w bazie. Inna odpowiedź pod zatwierdzonym `requestId` jest odrzucana.
+- Konsultacje wymagają połączenia. Aplikacja nie kontaktuje się z LLM; użytkownik sam wybiera zewnętrzne narzędzie i przekazuje mu dane. Nie dodano zależności ani płatnych usług.
 
 ### Kontrakt JSON v1
 
@@ -445,7 +465,7 @@ Plan kopii danych: możliwość eksportu własnych danych z aplikacji, ręczny b
 
 ## Decyzje pozostawione do odpowiedniego etapu
 
-- Zgodny moduł PWA — przy etapie instalacji iOS, na podstawie istniejącej wersji Nuxt.
+- Wdrożenie Vercel Hobby, instalacja i testy fizycznego iPhone’a — po opublikowaniu sprawdzonej wersji.
 - Katalog startowy obejmuje 19 ćwiczeń z jawną konwencją obciążenia; użytkownik może dodać prywatne ćwiczenia. Dalsze rozszerzenia katalogu dodajemy migracjami.
 - Ostateczne reguły sugestii ciężarów i definicje rekordów — przy postępach.
 - Konfiguracja odzyskiwania konta, harmonogram kopii i procedura odtworzenia — przed wydaniem.

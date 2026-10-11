@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { user } = useAuth()
+const pwa = usePwaState()
 const initial = computed(() => user.value?.email?.slice(0, 1).toUpperCase() ?? 'S')
 </script>
 
@@ -27,6 +28,13 @@ const initial = computed(() => user.value?.email?.slice(0, 1).toUpperCase() ?? '
       class="app-main"
       tabindex="-1"
     >
+      <p
+        v-if="pwa.offline"
+        role="status"
+        class="mb-5 border-l-2 border-accent py-2 pl-3 text-sm text-secondary"
+      >
+        Brak połączenia. Zmiany w otwartym treningu zapisujesz na tym urządzeniu.
+      </p>
       <slot />
     </main>
   </div>

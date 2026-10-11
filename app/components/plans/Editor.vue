@@ -173,7 +173,12 @@ watch(() => user.value?.id, () => {
               @click="discardDialog = true"
             >
               Odśwież dane
-            </button><button
+            </button><NuxtLink
+              :to="`/plans/ai?plan=${id}`"
+              class="inline-flex min-h-11 items-center text-secondary"
+              :aria-disabled="dirty || pending"
+              @click="(dirty || pending) && $event.preventDefault()"
+            >Skonsultuj plan z AI</NuxtLink><button
               type="button"
               class="min-h-11 font-medium text-accent disabled:opacity-40"
               :disabled="dirty || pending"

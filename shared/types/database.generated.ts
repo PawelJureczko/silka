@@ -6,7 +6,27 @@ export type Database = {
 
   "public": {
           Tables: {
-            "exercises": {
+            "ai_consultations": {
+                  Row: {
+                    "action": string,"applied_hash": string | null,"applied_response": Json | null,"base_revision": number | null,"context": NonNullable<Json>,"created_at": string,"id": string,"new_plan_id": string,"plan_id": string | null,"preparation_hash": string,"result": Json | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"applied_hash"?: string | null,"applied_response"?: Json | null,"base_revision"?: number | null,"context": NonNullable<Json>,"created_at"?: string,"id": string,"new_plan_id"?: string,"plan_id"?: string | null,"preparation_hash": string,"result"?: Json | null,"user_id"?: string
+                  }
+                  Update: {
+                    "action"?: string,"applied_hash"?: string | null,"applied_response"?: Json | null,"base_revision"?: number | null,"context"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"new_plan_id"?: string,"plan_id"?: string | null,"preparation_hash"?: string,"result"?: Json | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_consultations_plan_id_user_id_fkey"
+      columns: ["plan_id","user_id"]
+isOneToOne: false
+      referencedRelation: "training_plans"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"exercises": {
                   Row: {
                     "archived_at": string | null,"created_at": string,"equipment": string,"id": string,"load_mode": string,"muscle_group": string,"name": string,"owner_id": string | null,"updated_at": string,"weight_convention": string,"weight_increment_kg": number
                   }
@@ -209,6 +229,12 @@ isOneToOne: false
             "activate_training_plan":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"ai_text":
+{ Args: { "maximum": number,"value": Json }; Returns: undefined
+                           },
+"apply_ai_response":
+{ Args: { "p_request_id": string,"p_response": string,"p_selections"?: Json }; Returns: Json
+                           },
 "archive_training_plan":
 { Args: { "p_archived": boolean,"p_base_revision": number,"p_id": string }; Returns: undefined
                            },
@@ -226,11 +252,56 @@ isOneToOne: false
 "plan_number":
 { Args: { "maximum": number,"minimum": number,"value": Json,"whole"?: boolean }; Returns: number
                            },
+"prepare_ai_consultation":
+{ Args: { "p_action": string,"p_history_limit": number,"p_id": string,"p_instructions": string,"p_plan_id": string }; Returns: {
+              "action": string,
+"applied_hash": string | null,
+"applied_response": Json | null,
+"base_revision": number | null,
+"context": NonNullable<Json>,
+"created_at": string,
+"id": string,
+"new_plan_id": string,
+"plan_id": string | null,
+"preparation_hash": string,
+"result": Json | null,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "ai_consultations"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"prepare_ai_without_plan":
+{ Args: { "p_action": string,"p_history_limit": number,"p_id": string,"p_instructions": string }; Returns: {
+              "action": string,
+"applied_hash": string | null,
+"applied_response": Json | null,
+"base_revision": number | null,
+"context": NonNullable<Json>,
+"created_at": string,
+"id": string,
+"new_plan_id": string,
+"plan_id": string | null,
+"preparation_hash": string,
+"result": Json | null,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "ai_consultations"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "previous_workout_sets":
 { Args: { "p_session_id": string }; Returns: Json
                            },
 "progress_overview":
 { Args: { "p_timezone": string }; Returns: Json
+                           },
+"read_ai_plan":
+{ Args: { "p_id": string }; Returns: Json
                            },
 "save_profile":
 { Args: { "p_display_name": string,"p_timezone": string,"p_training_goal": string,"p_weekly_target": number }; Returns: undefined

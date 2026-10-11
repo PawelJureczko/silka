@@ -1,5 +1,6 @@
 import { workoutJournalSchema } from '#shared/schemas/workouts'
 import type { WorkoutJournal } from '#shared/schemas/workouts'
+import { blocksPwaUpdate } from '~/domain/pwa'
 
 let channel: BroadcastChannel | null = null
 export function workoutChannel() {
@@ -59,7 +60,28 @@ export async function writeWorkoutJournal(journal: WorkoutJournal): Promise<void
 export async function withWorkoutLock<T>(userId: string, kind: 'journal' | 'sync', action: () => Promise<T>): Promise<T> {
   if (!navigator.locks)
     throw new Error('Ta przeglądarka nie obsługuje bezpiecznego zapisu treningu. Zaktualizuj Safari lub użyj nowszej przeglądarki.')
-  return navigator.locks.request(`silka:${kind}:${userId}`, action)
+  const locked = () => navigator.locks.request(`silka:${kind}:${userId}`, action)
+  return kind === 'journal' ? navigator.locks.request('silka:pwa-update', { mode: 'shared' }, locked) : locked()
+}
+export async function hasBlockingWorkoutJournals(): Promise<boolean> {
+  const db = await openDatabase()
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction('journals', 'readonly')
+      const request = tx.objectStore('journals').getAll()
+      let blocked = true
+      request.onsuccess = () => {
+        const values: unknown[] = request.result
+        blocked = values.some((value) => {
+          const parsed = workoutJournalSchema.safeParse(value)
+          return !parsed.success || blocksPwaUpdate(parsed.data)
+        })
+      }
+      tx.oncomplete = () => resolve(blocked)
+      tx.onerror = tx.onabort = () => reject(new Error('Nie można sprawdzić lokalnego zapisu. Aktualizacja została wstrzymana.'))
+    })
+  }
+  finally { db.close() }
 }
 export async function removeWorkoutJournal(userId: string): Promise<void> {
   const db = await openDatabase()

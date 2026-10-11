@@ -1,6 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../../shared/types/database.generated'
 import type { SignInCredentials } from '../../shared/schemas/auth'
+import { z } from 'zod'
+
+const storedIdentitySchema = z.object({ user: z.object({ id: z.uuid(), email: z.email().optional() }) })
+export function readStoredIdentity() {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem('silka-auth') ?? 'null')
+    const parsed = storedIdentitySchema.safeParse(value)
+    return parsed.success ? parsed.data.user : null
+  }
+  catch { return null }
+}
 
 export function getAuthErrorMessage(code: string | undefined): string {
   switch (code) {

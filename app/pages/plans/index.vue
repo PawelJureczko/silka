@@ -25,7 +25,10 @@ async function confirmArchive() {
       >Importuj kopię</NuxtLink><NuxtLink
         to="/plans/catalog"
         class="inline-flex min-h-12 items-center px-2 text-sm font-medium text-secondary"
-      >Katalog ćwiczeń</NuxtLink>
+      >Katalog ćwiczeń</NuxtLink><NuxtLink
+        to="/plans/ai"
+        class="inline-flex min-h-12 items-center px-2 text-sm font-medium text-secondary"
+      >Konsultacja AI</NuxtLink>
     </div>
     <div
       class="mb-5 flex gap-2"

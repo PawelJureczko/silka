@@ -26,6 +26,11 @@ ENERGY 2 / RHYTHM 2 / MOTION 1. Energia wynika z typografii i wyniku, rytm z ró
 | Istniejące ikony tylko tam, gdzie opisują czynność | Nawigacja pozostaje rozpoznawalna, bez nowych bibliotek ani dekoracyjnych symboli. |
 | Strzałki przy powrocie, paginacji i wejściu w wynik | Sygnalizują kierunek nawigacji, nie są dodatkiem do każdej akcji. |
 | Cień przy przypiętym timerze | Odróżnia timer od przewijanej pod nim treści. Pozostałe powierzchnie są płaskie. |
+| Konsultacja jako zapis 01 prompt, 02 odpowiedź, 03 podgląd | Kolejność odpowiada ręcznemu przenoszeniu danych; linie i numeracja rozwijają motyw dziennika. |
+| Różnice planu w wierszach „Było / Propozycja” | Pokazują dokładnie, co użytkownik zatwierdza, w tym usunięte dane. |
+| Formularz konsultacji i lista powrotu w dwóch kolumnach od 850 px | Na szerokim ekranie kontynuacja jest dostępna obok przygotowania; na telefonie zachowujemy pojedynczy przepływ. |
+| Instalacja i aktualizacje w liniowej sekcji profilu | Ustawienia urządzenia mają jedno miejsce; linie rozwijają rytm dziennika bez dodatkowych kart i ozdobnych ikon. |
+| Krótki komunikat braku sieci przed treścią | Stan połączenia pozostaje widoczny bez zasłaniania pól treningu ani przypiętego timera. |
 
 ## Reflow i obsługa
 
