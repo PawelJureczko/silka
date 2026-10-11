@@ -162,14 +162,14 @@ isOneToOne: false
                   ]
                 },"workout_sessions": {
                   Row: {
-                    "created_at": string,"finished_at": string | null,"id": string,"plan_id": string | null,"plan_name_snapshot": string,"plan_revision_snapshot": number | null,"revision": number,"started_at": string,"status": string,"updated_at": string,"user_id": string,"workout_name_snapshot": string
+                    "created_at": string,"finished_at": string | null,"id": string,"last_operation_hash": string | null,"last_operation_id": string | null,"plan_id": string | null,"plan_name_snapshot": string,"plan_revision_snapshot": number | null,"rest_ends_at": string | null,"revision": number,"source_workout_id": string | null,"started_at": string,"status": string,"updated_at": string,"user_id": string,"workout_name_snapshot": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"finished_at"?: string | null,"id"?: string,"plan_id"?: string | null,"plan_name_snapshot": string,"plan_revision_snapshot"?: number | null,"revision"?: number,"started_at"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string,"workout_name_snapshot": string
+                    "created_at"?: string,"finished_at"?: string | null,"id"?: string,"last_operation_hash"?: string | null,"last_operation_id"?: string | null,"plan_id"?: string | null,"plan_name_snapshot": string,"plan_revision_snapshot"?: number | null,"rest_ends_at"?: string | null,"revision"?: number,"source_workout_id"?: string | null,"started_at"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string,"workout_name_snapshot": string
                   }
                   Update: {
-                    "created_at"?: string,"finished_at"?: string | null,"id"?: string,"plan_id"?: string | null,"plan_name_snapshot"?: string,"plan_revision_snapshot"?: number | null,"revision"?: number,"started_at"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string,"workout_name_snapshot"?: string
+                    "created_at"?: string,"finished_at"?: string | null,"id"?: string,"last_operation_hash"?: string | null,"last_operation_id"?: string | null,"plan_id"?: string | null,"plan_name_snapshot"?: string,"plan_revision_snapshot"?: number | null,"rest_ends_at"?: string | null,"revision"?: number,"source_workout_id"?: string | null,"started_at"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string,"workout_name_snapshot"?: string
                   }
                   Relationships: [
                     {
@@ -223,10 +223,22 @@ isOneToOne: false
 "plan_number":
 { Args: { "maximum": number,"minimum": number,"value": Json,"whole"?: boolean }; Returns: number
                            },
+"previous_workout_sets":
+{ Args: { "p_session_id": string }; Returns: Json
+                           },
 "save_training_plan":
 { Args: { "p_base_revision": number,"p_id": string,"p_operation_id": string,"p_plan": Json }; Returns: {
               "plan_id": string,"revision": number
             }[]
+                           },
+"save_workout":
+{ Args: { "p_base_revision": number,"p_id": string,"p_operation_id": string,"p_payload": Json }; Returns: number
+                           },
+"start_workout":
+{ Args: { "p_id": string,"p_plan_revision": number,"p_workout_id": string }; Returns: string
+                           },
+"weekly_workout_count":
+{ Args: { "p_timezone": string }; Returns: number
                            }
           }
           Enums: {

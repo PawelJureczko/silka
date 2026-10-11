@@ -1,5 +1,6 @@
 import { signInWithPassword, signOut } from '~/services/auth'
 import { signInSchema } from '#shared/schemas/auth'
+import { readWorkoutJournal } from '~/services/workout-storage'
 
 export function useAuth() {
   const state = useAuthState()
@@ -26,6 +27,15 @@ export function useAuth() {
 
   async function logout(): Promise<string | null> {
     if (!$supabase || state.pending.value) return 'Wylogowanie jest chwilowo niedostępne.'
+    if (useState<number>('workout:saving', () => 0).value > 0) return 'Poczekaj na zakończenie lokalnego zapisu przed wylogowaniem.'
+    try {
+      const journal = state.user.value ? await readWorkoutJournal(state.user.value.id) : null
+      if (journal && (journal.start || journal.queue.length || journal.conflict)
+        && !window.confirm('Masz trening oczekujący na zapis na koncie. Wylogować się i zachować go lokalnie? Wróć na to samo konto w tej przeglądarce, aby dokończyć synchronizację.')) return null
+    }
+    catch {
+      if (!window.confirm('Nie można sprawdzić lokalnego szkicu treningu. Wylogować się? Lokalny zapis pozostanie w tej przeglądarce.')) return null
+    }
     state.pending.value = true
     try {
       await signOut($supabase)

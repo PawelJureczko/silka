@@ -1,0 +1,291 @@
+<script setup lang="ts">
+import type { WorkoutSet } from '#shared/schemas/workouts'
+import { finishWorkout, workoutSummary } from '~/domain/workouts'
+import { downloadPlanExport } from '~/services/plan-transfer'
+
+const props = defineProps<{
+  id: string
+}>()
+const { session, local, loading, pageError, error, storageError, syncing, saving, update, sync, load, cancelStart } = useWorkoutPage(props.id)
+const invalid = ref<Record<string, boolean>>({})
+const finishDialog = ref<'completed' | 'abandoned' | null>(null)
+const discardDialog = ref(false)
+const cancelDialog = ref(false)
+const editable = computed(() => session.value?.status === 'active' && Boolean(local.value) && !local.value?.conflict && !storageError.value && !loading.value)
+const invalidCount = computed(() => Object.values(invalid.value).filter(Boolean).length)
+const summary = computed(() => session.value ? workoutSummary(session.value) : null)
+const saveLabel = computed(() => storageError.value ? 'Brak lokalnego zapisu' : saving.value ? 'Zapisywanie lokalnie…' : local.value?.conflict ? 'Konflikt · szkic zachowany lokalnie' : local.value?.start ? 'Oczekuje na rozpoczęcie na koncie' : !session.value ? 'Brak odczytanego treningu' : local.value?.queue.length ? syncing.value ? 'Zapisano lokalnie · synchronizacja…' : 'Zapisano lokalnie · oczekuje na synchronizację' : 'Zapisano na koncie')
+function change(exerciseId: string, next: WorkoutSet) {
+  void update((value) => {
+    const exercise = value.exercises.find(item => item.id === exerciseId)
+    const index = exercise?.sets.findIndex(set => set.id === next.id) ?? -1
+    if (!exercise || index < 0)
+      return
+    const wasCompleted = exercise.sets[index]?.status === 'completed'
+    exercise.sets[index] = next
+    if (next.status === 'completed' && !wasCompleted)
+      value.restEndsAt = exercise.restSeconds ? new Date(Date.now() + exercise.restSeconds * 1000).toISOString() : null
+  })
+}
+function addSet(exerciseId: string) {
+  void update((value) => {
+    const exercise = value.exercises.find(item => item.id === exerciseId)
+    if (!exercise || exercise.sets.length >= 40)
+      return
+    exercise.sets.push({ id: crypto.randomUUID(), setType: 'working', plannedRepsMin: null, plannedRepsMax: null, plannedWeightKg: null, reps: null, weightKg: null, status: 'pending', completedAt: null })
+  })
+}
+async function finish() {
+  if (!finishDialog.value)
+    return
+  const status = finishDialog.value
+  if (await update(value => Object.assign(value, finishWorkout(value, status))))
+    finishDialog.value = null
+}
+async function discard() {
+  await load(true)
+  discardDialog.value = false
+}
+function exportDraft() {
+  if (local.value)
+    downloadPlanExport(JSON.stringify({ format: 'silka-workout-recovery', schemaVersion: 1, session: local.value.session }, null, 2), 'silka-workout-recovery.json')
+}
+function previous(exerciseId: string, position: number, setType: string) {
+  return local.value?.previous.find(item => item.workoutExerciseId === exerciseId)?.sets.find(set => set.position === position && set.setType === setType)
+}
+function timer(extend: boolean) {
+  void update((value) => {
+    value.restEndsAt = extend ? new Date(Math.max(Date.now(), Date.parse(value.restEndsAt ?? '') || 0) + 30000).toISOString() : null
+  })
+}
+async function cancel() {
+  await cancelStart()
+  cancelDialog.value = false
+  await navigateTo('/')
+}
+useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` })
+</script>
+
+<template>
+  <div>
+    <NuxtLink
+      to="/"
+      class="mb-4 inline-flex min-h-11 items-center text-sm text-secondary"
+    >← Start</NuxtLink>
+    <UiPageHeading
+      :eyebrow="session?.planName ?? 'Twoja sesja'"
+      :title="session?.workoutName ?? 'Trening'"
+      :description="session?.status === 'active' ? 'Jedna seria na raz. Zapisuj to, co dziś wykonujesz.' : 'Twój trening i zapisane wyniki.'"
+    />
+    <p
+      v-if="loading"
+      role="status"
+      class="mb-5 text-secondary"
+    >
+      Otwieranie treningu…
+    </p>
+    <div class="panel mb-5 space-y-3 p-5">
+      <p
+        role="status"
+        class="text-sm"
+        :class="local?.queue.length || local?.conflict ? 'text-accent' : 'text-secondary'"
+      >
+        {{ saveLabel }}
+      </p>
+      <p
+        v-if="storageError || error || pageError"
+        role="alert"
+        class="text-sm text-red-300"
+      >
+        {{ storageError || error || pageError }}
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <UiBaseButton
+          v-if="local?.queue.length || local?.start"
+          variant="secondary"
+          :busy="syncing"
+          :disabled="Boolean(local?.conflict)"
+          @click="sync"
+        >
+          Ponów synchronizację
+        </UiBaseButton>
+        <UiBaseButton
+          v-if="!session && !local?.start"
+          variant="secondary"
+          :busy="loading"
+          @click="load()"
+        >
+          Spróbuj ponownie
+        </UiBaseButton>
+        <UiBaseButton
+          v-if="local?.conflict"
+          variant="secondary"
+          @click="exportDraft"
+        >
+          Pobierz szkic wyników
+        </UiBaseButton>
+        <UiBaseButton
+          v-if="local?.conflict && session"
+          variant="secondary"
+          :disabled="syncing"
+          @click="discardDialog = true"
+        >
+          Odczytaj wersję z konta
+        </UiBaseButton>
+      </div>
+    </div>
+    <UiBaseButton
+      v-if="local?.conflict && local.start"
+      variant="secondary"
+      :disabled="syncing"
+      class="mb-5"
+      @click="cancelDialog = true"
+    >
+      Anuluj próbę rozpoczęcia
+    </UiBaseButton>
+    <template v-if="session">
+      <WorkoutRestTimer
+        v-if="session.status === 'active'"
+        :ends-at="session.restEndsAt"
+        :disabled="!editable || saving > 0"
+        @stop="timer(false)"
+        @extend="timer(true)"
+      />
+      <section
+        v-if="session.status !== 'active'"
+        class="panel mb-5 p-6"
+      >
+        <p class="eyebrow">
+          {{ session.status === 'completed' ? 'Trening zakończony' : 'Trening porzucony' }}
+        </p><h2 class="mt-3 text-2xl font-semibold">
+          {{ summary?.completed }} wykonanych serii
+        </h2><p class="mt-2 text-sm text-secondary">
+          {{ summary?.minutes }} min · {{ summary?.skipped }} pominiętych serii
+        </p>
+        <p
+          v-if="local?.queue.length"
+          class="mt-4 text-sm text-accent"
+        >
+          Podsumowanie jest zapisane lokalnie. Zakończenie na koncie wymaga synchronizacji.
+        </p>
+      </section>
+      <div class="space-y-5">
+        <section
+          v-for="(exercise, ei) in session.exercises"
+          :key="exercise.id"
+          class="panel space-y-4 p-5 sm:p-6"
+        >
+          <div>
+            <p class="eyebrow">
+              Ćwiczenie {{ ei + 1 }} / {{ session.exercises.length }}
+            </p><h2 class="mt-2 text-xl font-semibold">
+              {{ exercise.name }}
+            </h2><p class="mt-2 text-sm text-secondary">
+              {{ exercise.equipment }} · {{ ({ total: 'kg łącznie', per_hand: 'kg na rękę', bodyweight: 'masa ciała + dodatkowe kg', assistance: 'kg asysty' })[exercise.weightConvention] }}
+            </p>
+          </div>
+          <p
+            v-if="exercise.notes"
+            class="text-sm whitespace-pre-wrap text-secondary"
+          >
+            {{ exercise.notes }}
+          </p>
+          <p
+            v-if="!local?.previous.some(item => item.workoutExerciseId === exercise.id) && session.status === 'active'"
+            class="text-xs text-secondary"
+          >
+            Poprzedni wynik niedostępny.
+          </p>
+          <WorkoutSetRow
+            v-for="(set, si) in exercise.sets"
+            :key="set.id"
+            :set="set"
+            :index="si"
+            :convention="exercise.weightConvention"
+            :bodyweight="exercise.loadMode === 'bodyweight'"
+            :disabled="!editable"
+            :busy="saving > 0"
+            :previous="previous(exercise.id, si, set.setType)"
+            @change="change(exercise.id, $event)"
+            @validity="invalid[set.id] = $event"
+          />
+          <UiBaseButton
+            v-if="editable"
+            variant="secondary"
+            class="w-full"
+            :disabled="saving > 0 || exercise.sets.length >= 40 || invalidCount > 0"
+            @click="addSet(exercise.id)"
+          >
+            + Dodaj serię
+          </UiBaseButton>
+        </section>
+      </div>
+      <div
+        v-if="session.status === 'active'"
+        class="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom))] mt-6 flex flex-wrap gap-3 rounded-2xl border border-white/10 bg-background/95 p-3 backdrop-blur"
+      >
+        <UiBaseButton
+          class="grow"
+          :disabled="!editable || saving > 0 || invalidCount > 0"
+          @click="finishDialog = 'completed'"
+        >
+          Zakończ trening
+        </UiBaseButton><UiBaseButton
+          variant="secondary"
+          :disabled="!editable || saving > 0 || invalidCount > 0"
+          @click="finishDialog = 'abandoned'"
+        >
+          Porzuć
+        </UiBaseButton>
+      </div>
+    </template>
+    <UiDialog
+      v-if="finishDialog"
+      :title="finishDialog === 'completed' ? 'Zakończyć trening?' : 'Porzucić trening?'"
+      :busy="saving > 0"
+      @close="finishDialog = null"
+    >
+      <p class="mb-5 leading-relaxed text-secondary">
+        {{ finishDialog === 'completed' ? 'Pozostałe serie zostaną oznaczone jako pominięte. Wyniki trafią do podsumowania; po zakończeniu nie można ich edytować.' : 'Wyniki pozostaną w porzuconej sesji, ale nie będą uwzględniane w postępach.' }} Zapis na koncie nastąpi po wysłaniu wcześniejszych zmian.
+      </p><UiBaseButton
+        :busy="saving > 0"
+        @click="finish"
+      >
+        {{ finishDialog === 'completed' ? 'Zakończ i podsumuj' : 'Potwierdź porzucenie' }}
+      </UiBaseButton>
+      <p
+        v-if="error"
+        role="alert"
+        class="mt-4 text-red-300"
+      >
+        {{ error }}
+      </p>
+    </UiDialog>
+    <UiDialog
+      v-if="cancelDialog"
+      title="Anulować próbę rozpoczęcia?"
+      @close="cancelDialog = false"
+    >
+      <p class="mb-5 text-secondary">
+        Plan lub ćwiczenia są niedostępne, plan zmienił się albo na koncie trwa już inny trening. Ta próba nie utworzyła sesji. Wróć na Start i odczytaj aktualne dane.
+      </p><UiBaseButton @click="cancel">
+        Anuluj próbę i wróć na Start
+      </UiBaseButton>
+    </UiDialog>
+    <UiDialog
+      v-if="discardDialog"
+      title="Odrzucić lokalne zmiany?"
+      :busy="loading"
+      @close="discardDialog = false"
+    >
+      <p class="mb-5 text-secondary">
+        Najpierw możesz pobrać szkic wyników. Odczyt wersji z konta zastąpi lokalny szkic i kolejkę zmian; nie połączy ich automatycznie.
+      </p><UiBaseButton
+        :busy="loading"
+        @click="discard"
+      >
+        Odrzuć szkic i odczytaj konto
+      </UiBaseButton>
+    </UiDialog>
+  </div>
+</template>

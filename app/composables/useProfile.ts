@@ -9,5 +9,6 @@ export function useProfile() {
       if (!$supabase || !user.value) return null
       return fetchProfile($supabase, user.value.id)
     },
+    { lazy: true },
   )
 }

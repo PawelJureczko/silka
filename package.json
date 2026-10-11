@@ -16,6 +16,7 @@
     "test:db": "supabase test db",
     "test:auth": "node --test tests/integration/auth.test.mjs",
     "test:plans": "node --test tests/integration/plans.test.mjs",
+    "test:workouts": "node --test tests/integration/workouts.test.mjs",
     "db:start": "supabase start -x realtime,storage-api,imgproxy,edge-runtime,logflare,vector,supavisor",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset --local",

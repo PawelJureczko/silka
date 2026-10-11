@@ -12,11 +12,11 @@ export function serializePlanExport(value: PlanExport) {
     throw new Error('Plan przekracza limit eksportu 256 KiB. Podziel go na mniejsze plany.')
   return compact
 }
-export function downloadPlanExport(text: string) {
+export function downloadPlanExport(text: string, filename = 'silka-plan.json') {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
   const link = document.createElement('a')
   link.href = url
-  link.download = 'silka-plan.json'
+  link.download = filename
   link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

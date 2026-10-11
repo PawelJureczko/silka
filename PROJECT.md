@@ -6,13 +6,13 @@ Siłka to bezpłatna aplikacja PWA do planowania treningów siłowych i śledzen
 
 Repozytorium: https://github.com/PawelJureczko/silka
 
-Etapy 0 (dokumentacja) i 1 (fundament) są zapisane na GitHub. Etap 2 dodaje katalog ćwiczeń, prywatne ćwiczenia własne, edytor jednostek i serii, aktywny plan, archiwum oraz eksport/import niezależnej kopii z podglądem i zatwierdzeniem. Pozostałe funkcje opisane niżej są planowane.
+Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany eksport/import kopii. Etap 3 dodaje dashboard, rozpoczęcie i wznowienie sesji, wykonane serie, poprzednie wyniki, timer, lokalny szkic z kolejką oraz zakończenie i porzucenie z podsumowaniem. Postępy, AI i instalacja PWA są planowane.
 
 Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
 
 Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 10 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Wdrożenie Vercel oraz PWA nie zostały wykonane.
 
-Migracje fundamentu i planów (`20261011000100`, `20261011000200`, `20261011000300`) są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. Cztery RPC planów działają jako `SECURITY INVOKER` i wymagają uwierzytelnienia. Fikcyjne plany i ćwiczenia do testów nie były zapisywane w chmurze.
+Migracje `20261011000100`–`20261011000600` są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. Cztery RPC planów oraz cztery RPC treningów działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
 
 Stan sprawdzony 11 października 2026: lokalny katalog był pusty i nie był checkoutem Git. GitHub zwracał publiczne repozytorium bez gałęzi domyślnej, o rozmiarze 0 KB. Przy przygotowaniu dokumentacji nie inicjalizowano aplikacji ani usług.
 
@@ -195,7 +195,7 @@ Każda prywatna tabela ma `user_id`. Identyfikatory są UUID. W tabelach edytowa
 | `plan_workouts` | `user_id`, `plan_id`, `name`, `position`, opcjonalny `weekday` |
 | `plan_exercises` | `user_id`, `plan_workout_id`, `exercise_id`, `position`, `rest_seconds`, `notes` |
 | `plan_sets` | `user_id`, `plan_exercise_id`, `position`, `set_type`, `reps_min`, `reps_max`, `target_weight_kg` nullable |
-| `workout_sessions` | `user_id`, `plan_id` nullable, `plan_revision_snapshot`, `plan_name_snapshot`, `workout_name_snapshot`, `started_at`, `finished_at` nullable, `status`, `revision` |
+| `workout_sessions` | `user_id`, `plan_id` nullable, `plan_revision_snapshot`, `plan_name_snapshot`, `workout_name_snapshot`, `source_workout_id` nullable bez FK, `started_at`, `finished_at` nullable, `rest_ends_at` nullable, `status`, `revision`, `last_operation_id`, `last_operation_hash` |
 | `workout_exercises` | `user_id`, `session_id`, `exercise_id`, `exercise_name_snapshot`, `equipment_snapshot`, `load_mode_snapshot`, `weight_convention_snapshot`, `position`, `rest_seconds`, `notes` |
 | `workout_sets` | `user_id`, `workout_exercise_id`, `position`, `set_type`, planowane zakresy i ciężar, `reps` nullable, `weight_kg` nullable, `status`, `completed_at` nullable |
 
@@ -256,6 +256,20 @@ Zasady odporności:
 - Dźwięki i sygnały przy zablokowanym ekranie wymagają sprawdzenia na rzeczywistym iPhonie; nie są warunkiem działania timera w MVP.
 - Service worker cache'uje zasoby aplikacji, nie odpowiedzi Auth ani prywatne dane API. Dane treningu trafiają do kontrolowanego magazynu lokalnego.
 - Aktualizacja PWA nie przeładowuje strony automatycznie podczas aktywnego treningu. Najpierw zabezpieczamy dane i pokazujemy możliwość aktualizacji.
+
+### Zaimplementowane zachowanie etapu 3
+
+- Start zapisuje lokalnie zamiar ze stabilnym UUID, następnie RPC atomowo kopiuje jednostkę z konkretnej rewizji planu. Nie podstawia planowanego ciężaru jako wykonanego. Pierwsze pobranie sesji wymaga sieci. Ponowienie po utracie odpowiedzi zwraca istniejącą sesję.
+- Dashboard wybiera jednostkę przypisaną do dzisiejszego dnia albo kolejną po ostatniej zakończonej sesji aktywnego planu (wśród 30 ostatnich sesji). Użytkownik może zmienić wybór. Zmiana planu odtwarza ID jednostek i może zresetować wybór do pierwszej. Dashboard pokazuje trzy ostatnie sesje i dokładną liczbę zakończonych sesji rozpoczętych w bieżącym tygodniu według strefy profilu.
+- IndexedDB `silka-workouts` przechowuje jeden bieżący lub ostatni dziennik na konto. Zapis używa transakcji z `durability: strict`; UI potwierdza lokalny sukces dopiero po jej zakończeniu. Web Locks szereguje modyfikacje i synchronizację między kartami, a BroadcastChannel odświeża ich stan. Wymagane są obsługujące je przeglądarki i HTTPS lub localhost.
+- Kolejka przechowuje pełne snapshoty wykonania. Scala jedynie ostatni snapshot, którego jeszcze nie próbowano wysłać. ID operacji, bazowa rewizja i treść rozpoczętej próby pozostają stałe do potwierdzenia; późniejsze zmiany czekają za nią. Zakończenie nie wyprzedza wcześniejszych zapisów.
+- RPC zapisu sprawdza właściciela, rewizję, wszystkie istniejące ćwiczenia i serie, liczby oraz statusy. Można dopisać do 40 serii na ćwiczenie; nie można zmienić snapshotu planu ani usunąć istniejącej serii. Zakończona sesja jest tylko do odczytu w aplikacji; RPC nie pozwala jej ponownie edytować.
+- Zakończenie wymaga przynajmniej jednej wykonanej serii. Pozostałe otrzymują status `skipped`. Porzucenie zachowuje wyniki, ale wyklucza sesję ze statystyk i poprzednich wyników. Podsumowanie pokazuje wykonane i pominięte serie oraz czas; nie sumuje nieporównywalnych kilogramów.
+- Poprzednie wyniki pochodzą z najnowszej wcześniejszej zakończonej sesji z wykonanymi seriami danego ćwiczenia, zgodnym sprzętem, trybem i konwencją ciężaru. Porównanie serii zachowuje pozycję i rodzaj; nie przenosi wyniku automatycznie do formularza.
+- Po konflikcie szkic i kolejka pozostają lokalnie, a wysyłanie jest zatrzymane. Można pobrać `silka-workout-recovery.json` i jawnie zastąpić szkic wersją z konta. Plik jest kopią do ręcznego odtworzenia wyników, bez automatycznego importu. Odrzuconą przez serwer próbę startu można anulować; po niepewnym timeoutcie najpierw ponawiamy ten sam UUID.
+- Wylogowanie z kolejką lub konfliktem wymaga potwierdzenia zachowania szkicu na tym urządzeniu. Powrót na to samo konto przywraca go; inne konto nie widzi go i nie wysyła jego zmian. Przy trwającym zapisie lokalnym trzeba poczekać na jego zakończenie.
+- Timer ma zapisany znacznik końca, obsługuje dodanie 30 sekund i zakończenie odpoczynku. Nie ma dźwięków w tle. Odświeżanie, powrót do karty i odzyskanie szkicu sprawdzono w przeglądarce; fizyczny iPhone pozostaje do weryfikacji.
+- Test utraty łączności obejmuje wyłączenie lokalnego API, edycję, odświeżenie z dostępnymi zasobami aplikacji, zakończenie i późniejszą synchronizację. Pełne uruchomienie aplikacji bez sieci wymaga service workera w etapie 6. Usunięcie danych witryny lub ich usunięcie przez system może utracić niewysłany szkic.
 
 ## Sugestie ciężaru
 
@@ -368,7 +382,7 @@ Osobny kontrakt `format: "silka-plan"`, `schemaVersion: 1` zawiera `plan` zgodny
 
 Importer dopasowuje dostępne ćwiczenia po ID i zgodnej konwencji obciążenia. Pozostałe wymagają jawnego wyboru lub utworzenia własnego ćwiczenia. Zatwierdzenie zapisuje nowy plan „… — kopia”; nie ustawia go automatycznie jako aktywnego. Anulowanie podglądu nie zapisuje planu. Osobno zatwierdzone dodanie ćwiczenia do katalogu pozostaje na koncie.
 
-Zapis całego planu, aktywacja i archiwizacja są transakcyjnymi RPC działającymi z RLS wywołującego. Zapis używa bazowej rewizji i stabilnego ID operacji; ponowienie ostatniego zapisu z identycznymi danymi zwraca istniejący wynik. Zmiana danych pod tym samym ID operacji jest odrzucana. Nieaktualna rewizja blokuje nadpisanie. Po nowszej operacji wymagany jest ponowny odczyt. Archiwizacja usuwa aktywne przypisanie, a przywrócenie go nie odtwarza. Edytor planów wymaga sieci; lokalne zabezpieczenie aktywnego treningu należy do etapu 3.
+Zapis całego planu, aktywacja i archiwizacja są transakcyjnymi RPC działającymi z RLS wywołującego. Zapis używa bazowej rewizji i stabilnego ID operacji; ponowienie ostatniego zapisu z identycznymi danymi zwraca istniejący wynik. Zmiana danych pod tym samym ID operacji jest odrzucana. Nieaktualna rewizja blokuje nadpisanie. Po nowszej operacji wymagany jest ponowny odczyt. Archiwizacja usuwa aktywne przypisanie, a przywrócenie go nie odtwarza. Edytor planów wymaga sieci; lokalne zabezpieczenie aktywnego treningu działa od etapu 3.
 
 ## Etapy MVP i kryteria ukończenia
 
