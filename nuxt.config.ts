@@ -38,6 +38,7 @@ export default defineNuxtConfig({
   buildDir: process.env.SILKA_TEST_BUILD_DIR || '.nuxt',
   experimental: { checkOutdatedBuildInterval: false, emitRouteChunkError: 'manual' },
   compatibilityDate: '2026-10-11',
+  nitro: { preset: 'static' },
   vite: { plugins: [tailwindcss()] },
   typescript: { strict: true, typeCheck: false },
   eslint: {

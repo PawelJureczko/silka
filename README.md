@@ -120,7 +120,7 @@ Po zmianie layoutu sprawdzono szerokości 320, 390, 700, 850, 1000 i 1280 px, kl
 
 ## Statyczny build i hosting
 
-`npm run build` generuje `.output/public` z `ssr: false`. `vercel.json` określa katalog wynikowy, routing SPA i podstawowe nagłówki. W Vercel ustaw te same dwie publiczne zmienne środowiskowe oraz zgodną wersję Node 22. Konfiguracja jest wbudowywana w statyczne pliki; zmiana wymaga ponownego builda. Wdrożenie nie zostało jeszcze wykonane.
+`npm run build` generuje `.output/public` z `ssr: false` i jawnym presetem Nitro `static`. Preset zachowuje ten sam katalog także w CI Vercel, gdzie automatyczne wykrycie dostawcy zmieniłoby miejsce zapisu. `vercel.json` określa katalog wynikowy, routing SPA i podstawowe nagłówki. W Vercel ustaw te same dwie publiczne zmienne środowiskowe oraz zgodną wersję Node 22. Konfiguracja jest wbudowywana w statyczne pliki; zmiana wymaga ponownego builda. Wdrożenie nie zostało jeszcze wykonane.
 
 Na ekranie importu Vercel wybierz Hobby, repozytorium `PawelJureczko/silka` oraz gałąź zawierającą aktualną implementację. `main` zawiera obecnie wyłącznie dokumentację. Preset Other, build `npm run build`, output `.output/public`, install `npm ci`, Node 22.x. Nie włączaj płatnych dodatków. Publiczne zmienne to `NUXT_PUBLIC_SUPABASE_URL` i `NUXT_PUBLIC_SUPABASE_KEY`; nie dodawaj `.env.local`, hasła bazy ani kluczy administracyjnych. Po wdrożeniu sprawdź `/sw.js` (JavaScript, bez cache HTTP), manifest, ikony i bezpośrednie wejście w `/profile` oraz szczegóły treningu.
 
