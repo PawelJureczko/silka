@@ -6,11 +6,11 @@ Siłka to bezpłatna aplikacja PWA do planowania treningów siłowych i śledzen
 
 Repozytorium: https://github.com/PawelJureczko/silka
 
-Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany eksport/import kopii. Etap 3 dodaje dashboard, rozpoczęcie i wznowienie sesji, wykonane serie, poprzednie wyniki, timer, lokalny szkic z kolejką oraz zakończenie i porzucenie z podsumowaniem. Etap 4 dodaje historię z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycję profilu. Etap 5 dodaje ręczne konsultacje AI: cztery akcje JSON v1, prompt, walidację, podgląd i zatwierdzany zapis. Etap 6 ma zaimplementowany manifest, ikony, lokalne otwieranie aplikacji i ręczne aktualizacje. Wdrożenie HTTPS oraz weryfikacja na fizycznym iPhonie pozostają do wykonania.
+Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, edytor planu, aktywne przypisanie, archiwum oraz zatwierdzany eksport/import kopii. Etap 3 dodaje dashboard, rozpoczęcie i wznowienie sesji, wykonane serie, poprzednie wyniki, timer, lokalny szkic z kolejką oraz zakończenie i porzucenie z podsumowaniem. Etap 4 dodaje historię z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycję profilu. Etap 5 dodaje ręczne konsultacje AI: cztery akcje JSON v1, prompt, walidację, podgląd i zatwierdzany zapis. Etap 6 ma zaimplementowany manifest, ikony, lokalne otwieranie aplikacji i ręczne aktualizacje. Aplikacja działa przez HTTPS; weryfikacja na fizycznym iPhonie pozostaje do wykonania.
 
 Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
 
-Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 11 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Formularz importu repozytorium w Vercel Hobby jest otwarty; wdrożenie nie zostało wykonane.
+Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 11 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Projekt Vercel `silka` działa na Hobby pod https://silka-jureczko.vercel.app. Gałąź produkcyjna to `feat/progress`; push uruchamia wdrożenie. `main` nadal zawiera dokumentację. Potwierdzono logowanie rzeczywistego użytkownika, odczyt profilu, zapis plików PWA oraz publiczne zasoby i routing HTTPS. Izolacja kont była testowana lokalnie; test dwóch rzeczywistych kont pozostaje do wydania.
 
 Migracje `20261011000100`–`20261011001000` są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. RPC planów, treningów, postępów, profilu i konsultacji działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
 
@@ -465,7 +465,7 @@ Plan kopii danych: możliwość eksportu własnych danych z aplikacji, ręczny b
 
 ## Decyzje pozostawione do odpowiedniego etapu
 
-- Wdrożenie Vercel Hobby, instalacja i testy fizycznego iPhone’a — po opublikowaniu sprawdzonej wersji.
+- Instalacja i testy fizycznego iPhone’a — na opublikowanej wersji Vercel Hobby.
 - Katalog startowy obejmuje 19 ćwiczeń z jawną konwencją obciążenia; użytkownik może dodać prywatne ćwiczenia. Dalsze rozszerzenia katalogu dodajemy migracjami.
 - Ostateczne reguły sugestii ciężarów i definicje rekordów — przy postępach.
 - Konfiguracja odzyskiwania konta, harmonogram kopii i procedura odtworzenia — przed wydaniem.

@@ -2,7 +2,7 @@
 
 Prywatna aplikacja treningowa dla dwóch osób. Założenia produktu i etapy: [PROJECT.md](PROJECT.md). Zasady pracy: [AGENTS.md](AGENTS.md).
 
-Zrealizowano etapy 1–5: Nuxt 4, Vue 3, TypeScript strict, Tailwind 4, mobilną nawigację, Auth, profil i bazę z RLS. Działają katalog, własne ćwiczenia, edytor jednostek i serii, aktywne przypisanie, archiwizacja i przywracanie oraz eksport/import kopii z podglądem. Działa aktywny trening: dashboard, serie, poprzednie wyniki, odpoczynek, lokalny szkic i synchronizacja oraz podsumowanie. Działają historia z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycja profilu. Ręczna konsultacja AI obsługuje prompty, cztery akcje JSON v1 i zatwierdzany zapis. Etap 6 ma pliki instalacyjne PWA, otwieranie bez serwera i ręczne aktualizacje; wdrożenie i testy iPhone’a pozostają otwarte.
+Zrealizowano etapy 1–5: Nuxt 4, Vue 3, TypeScript strict, Tailwind 4, mobilną nawigację, Auth, profil i bazę z RLS. Działają katalog, własne ćwiczenia, edytor jednostek i serii, aktywne przypisanie, archiwizacja i przywracanie oraz eksport/import kopii z podglądem. Działa aktywny trening: dashboard, serie, poprzednie wyniki, odpoczynek, lokalny szkic i synchronizacja oraz podsumowanie. Działają historia z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycja profilu. Ręczna konsultacja AI obsługuje prompty, cztery akcje JSON v1 i zatwierdzany zapis. Etap 6 ma pliki instalacyjne PWA, otwieranie bez serwera, ręczne aktualizacje i wdrożenie HTTPS; testy fizycznego iPhone’a pozostają otwarte.
 
 ## Uruchomienie z Supabase w chmurze
 
@@ -120,7 +120,9 @@ Po zmianie layoutu sprawdzono szerokości 320, 390, 700, 850, 1000 i 1280 px, kl
 
 ## Statyczny build i hosting
 
-`npm run build` generuje `.output/public` z `ssr: false` i jawnym presetem Nitro `static`. Preset zachowuje ten sam katalog także w CI Vercel, gdzie automatyczne wykrycie dostawcy zmieniłoby miejsce zapisu. `vercel.json` określa katalog wynikowy, routing SPA i podstawowe nagłówki. W Vercel ustaw te same dwie publiczne zmienne środowiskowe oraz zgodną wersję Node 22. Konfiguracja jest wbudowywana w statyczne pliki; zmiana wymaga ponownego builda. Wdrożenie nie zostało jeszcze wykonane.
+`npm run build` generuje `.output/public` z `ssr: false` i jawnym presetem Nitro `static`. Preset zachowuje ten sam katalog także w CI Vercel, gdzie automatyczne wykrycie dostawcy zmieniłoby miejsce zapisu. `vercel.json` określa katalog wynikowy, routing SPA i podstawowe nagłówki. W Vercel ustaw te same dwie publiczne zmienne środowiskowe oraz zgodną wersję Node 22. Konfiguracja jest wbudowywana w statyczne pliki; zmiana wymaga ponownego builda.
+
+Wdrożona aplikacja: https://silka-jureczko.vercel.app. Projekt Vercel `silka` na Hobby śledzi produkcyjną gałąź `feat/progress`; każdy push uruchamia build. `main` nadal zawiera dokumentację. Ustawiono Node 22.x, `npm ci` i dwie publiczne zmienne Supabase w środowisku Production. Stary adres `project-bcug5.vercel.app` przekierowuje na nowy. Potwierdzono logowanie i odczyt profilu w HTTPS, gotowość lokalnych plików PWA, 53 zasoby cache, manifest i ikony oraz bezpośredni routing `/profile` i `/workouts/:id`. `/sw.js` ma typ JavaScript i `no-cache, no-store, must-revalidate`.
 
 Na ekranie importu Vercel wybierz Hobby, repozytorium `PawelJureczko/silka` oraz gałąź zawierającą aktualną implementację. `main` zawiera obecnie wyłącznie dokumentację. Preset Other, build `npm run build`, output `.output/public`, install `npm ci`, Node 22.x. Nie włączaj płatnych dodatków. Publiczne zmienne to `NUXT_PUBLIC_SUPABASE_URL` i `NUXT_PUBLIC_SUPABASE_KEY`; nie dodawaj `.env.local`, hasła bazy ani kluczy administracyjnych. Po wdrożeniu sprawdź `/sw.js` (JavaScript, bez cache HTTP), manifest, ikony i bezpośrednie wejście w `/profile` oraz szczegóły treningu.
 
@@ -134,7 +136,7 @@ Aktualizację uruchom z Profilu. Aplikacja najpierw sprawdza lokalny zapis wszys
 
 Przed uznaniem etapu 6 za zakończony:
 
-- Wdrożenie HTTPS z właściwej gałęzi i potwierdzenie izolacji dwóch rzeczywistych kont.
+- Potwierdzenie izolacji dwóch rzeczywistych kont na wdrożonej aplikacji HTTPS.
 - Fizyczny iPhone: instalacja, safe area, klawiatura i obsługa jedną ręką.
 - Tryb samolotowy po załadowaniu treningu: seria, zamknięcie/ponowne otwarcie, zakończenie, odzyskanie sieci i brak duplikatów.
 - Powrót z tła i blokady ekranu: timer oraz lokalny szkic. Alarm na zablokowanym ekranie nie jest oferowany.

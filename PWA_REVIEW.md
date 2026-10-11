@@ -1,4 +1,6 @@
-# Weryfikacja lokalnej części PWA
+# Weryfikacja PWA i wdrożenia
+
+Wdrożenie 11.10.2026: Vercel Hobby, projekt `silka`, gałąź produkcyjna `feat/progress`, adres https://silka-jureczko.vercel.app. Pierwszy build wykrył problem automatycznego presetu Vercel: pliki trafiły poza `.output/public`. Jawny preset Nitro `static` naprawił katalog; lint, typecheck i build z `VERCEL=1 CI=1` przeszły. Commit `676aeba` uzyskał status Ready. Anonimowe żądania HTTPS potwierdziły routing SPA, 53 zasoby PWA, manifest standalone, PNG, MIME JavaScript i nagłówki wyłączające HTTP cache dla `/sw.js`. Konfiguracja wskazuje chmurowy Supabase. Użytkownik zalogował się w produkcyjnej aplikacji; profil potwierdził zapis plików na urządzeniu. Nie dodano danych treningowych w celu testowania chmury. Fizyczny iPhone i izolacja dwóch rzeczywistych kont nadal wymagają weryfikacji.
 
 11.10.2026. Zakres: nowa sekcja instalacji i aktualizacji w profilu, komunikat połączenia, manifest i worker; dotychczasowe ekrany oceniono wcześniej w `LAYOUT_REVIEW.md` i `AI_REVIEW.md`. Tryb antislop: during, ustalenie sesji. Design Read: ustawienia osobistego dziennika treningowego dla dwóch osób, zgodne z `DESIGN.md`; ENERGY 2 / RHYTHM 2 / MOTION 1.
 
@@ -14,7 +16,7 @@
 - Szerokości 320, 390, 700, 850, 1000, 1280 CSS px: brak poziomego overflow i przycisków mniejszych niż 44 × 44 px. Oceniono zrzut 390 × 844 z sekcją PWA i dolną nawigacją; odstęp nad nawigacją zachowany. Tymczasowy viewport przywrócono.
 - Testy jednostkowe obejmują blokady aktualizacji, uszkodzoną tożsamość, brak kopiowania tokenów, wykluczenie Auth/API i obcych originów, offline fallback, stare chunki, rollback nieudanej instalacji, ręczną aktywację oraz ostrożne usuwanie starych cache.
 
-Ograniczenie: odcięcie serwerów nie zmienia `navigator.onLine`. To dowód odzyskania aplikacji i treningu przy niedostępnej sieci serwera, nie test trybu samolotowego ani zainstalowanej PWA w Safari. Natywny prompt instalacji i iOS wymagają urządzenia oraz adresu HTTPS. Nie oferujemy sygnałów timera na zablokowanym ekranie. Wdrożenie, odzyskiwanie konta i kopie pozostają na liście wydania w `README.md`.
+Ograniczenie: odcięcie serwerów nie zmienia `navigator.onLine`. To dowód odzyskania aplikacji i treningu przy niedostępnej sieci serwera, nie test trybu samolotowego ani zainstalowanej PWA w Safari. Natywny prompt instalacji i iOS wymagają urządzenia. Nie oferujemy sygnałów timera na zablokowanym ekranie. Odzyskiwanie konta i kopie pozostają na liście wydania w `README.md`.
 
 Sprawdzenia końcowe: `npm run lint`, `npm run typecheck`, `npm test` 28/28, `npm run test:auth` 2/2, `npm run test:workouts` 7/7 oraz build z lokalną i chmurową konfiguracją przeszły. Chmurowy build `83e5ed01-dad0-4989-9b3d-f5187ad675e5` ma wszystkie 53 zasoby obecne na dysku, właściwy URL Supabase, bez adresu lokalnego API, oraz prawidłowe wymiary ikon PNG. `git diff --check` przeszedł. Nie zmieniano bazy ani migracji w etapie PWA; pełne sprawdzenia bazy z etapu AI są w `AI_REVIEW.md`.
 
