@@ -90,7 +90,7 @@ export async function removeWorkoutJournal(userId: string): Promise<void> {
       const tx = db.transaction('journals', 'readwrite', { durability: 'strict' })
       tx.objectStore('journals').delete(userId)
       tx.oncomplete = () => resolve()
-      tx.onerror = tx.onabort = () => reject(new Error('Nie udało się anulować lokalnej próby rozpoczęcia.'))
+      tx.onerror = tx.onabort = () => reject(new Error('Nie udało się usunąć lokalnego szkicu. Ponów próbę.'))
     })
     workoutChannel().postMessage({ userId })
   }

@@ -1,5 +1,7 @@
 # Weryfikacja PWA i wdrożenia
 
+11.10.2026 użytkownik potwierdził dodanie Siłki jako PWA na iPhonie. Potwierdzenie obejmuje instalację; odzyskiwanie treningu w trybie samolotowym, powrót z tła i aktualizacja na urządzeniu pozostają do sprawdzenia.
+
 Wdrożenie 11.10.2026: Vercel Hobby, projekt `silka`, gałąź produkcyjna `feat/progress`, adres https://silka-jureczko.vercel.app. Pierwszy build wykrył problem automatycznego presetu Vercel: pliki trafiły poza `.output/public`. Jawny preset Nitro `static` naprawił katalog; lint, typecheck i build z `VERCEL=1 CI=1` przeszły. Commit `676aeba` uzyskał status Ready. Anonimowe żądania HTTPS potwierdziły routing SPA, 53 zasoby PWA, manifest standalone, PNG, MIME JavaScript i nagłówki wyłączające HTTP cache dla `/sw.js`. Konfiguracja wskazuje chmurowy Supabase. Użytkownik zalogował się w produkcyjnej aplikacji; profil potwierdził zapis plików na urządzeniu. Nie dodano danych treningowych w celu testowania chmury. Fizyczny iPhone i izolacja dwóch rzeczywistych kont nadal wymagają weryfikacji.
 
 11.10.2026. Zakres: nowa sekcja instalacji i aktualizacji w profilu, komunikat połączenia, manifest i worker; dotychczasowe ekrany oceniono wcześniej w `LAYOUT_REVIEW.md` i `AI_REVIEW.md`. Tryb antislop: during, ustalenie sesji. Design Read: ustawienia osobistego dziennika treningowego dla dwóch osób, zgodne z `DESIGN.md`; ENERGY 2 / RHYTHM 2 / MOTION 1.

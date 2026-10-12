@@ -52,8 +52,11 @@ async function submit() {
     @submit.prevent="submit"
   >
     <h2 class="text-xl font-semibold">
-      Własne ćwiczenie
+      Nowe ćwiczenie
     </h2>
+    <p class="text-sm text-secondary">
+      Dodasz je do wspólnego katalogu wszystkich użytkowników Siłki. W nazwie nie wpisuj danych osobowych ani prywatnych notatek.
+    </p>
     <fieldset
       :disabled="pending"
       class="space-y-4"

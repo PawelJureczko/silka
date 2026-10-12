@@ -6,12 +6,14 @@ import { downloadPlanExport } from '~/services/plan-transfer'
 const props = defineProps<{
   id: string
 }>()
-const { session, local, loading, pageError, error, storageError, syncing, saving, update, sync, load, cancelStart } = useWorkoutPage(props.id)
+const profile = useProfile()
+const { session, local, deleted, loading, pageError, error, storageError, syncing, saving, deleting, update, sync, load, cancelStart, remove } = useWorkoutPage(props.id)
 const invalid = ref<Record<string, boolean>>({})
 const finishDialog = ref<'completed' | 'abandoned' | null>(null)
 const discardDialog = ref(false)
 const cancelDialog = ref(false)
-const editable = computed(() => session.value?.status === 'active' && Boolean(local.value) && !local.value?.conflict && !storageError.value && !loading.value)
+const deleteDialog = ref(false)
+const editable = computed(() => session.value?.status === 'active' && Boolean(local.value) && !local.value?.conflict && !storageError.value && !loading.value && !deleting.value)
 const invalidCount = computed(() => Object.values(invalid.value).filter(Boolean).length)
 const summary = computed(() => session.value ? workoutSummary(session.value) : null)
 const saveLabel = computed(() => storageError.value ? 'Brak lokalnego zapisu' : saving.value ? 'Zapisywanie lokalnie…' : local.value?.conflict ? 'Konflikt · szkic zachowany lokalnie' : local.value?.start ? 'Oczekuje na rozpoczęcie na koncie' : !session.value ? 'Brak odczytanego treningu' : local.value?.queue.length ? syncing.value ? 'Zapisano lokalnie · synchronizacja…' : 'Zapisano lokalnie · oczekuje na synchronizację' : 'Zapisano na koncie')
@@ -63,6 +65,14 @@ async function cancel() {
   cancelDialog.value = false
   await navigateTo('/')
 }
+async function confirmDelete() {
+  if (!session.value || !await remove(props.id, session.value.revision))
+    return
+  deleteDialog.value = false
+  clearNuxtData(key => key.startsWith('progress-') || key.startsWith('workout-dashboard:'))
+  await navigateTo('/progress')
+}
+const sessionDate = computed(() => session.value ? new Intl.DateTimeFormat('pl-PL', { dateStyle: 'long', timeStyle: 'short', timeZone: profile.data.value?.timezone ?? 'Europe/Warsaw' }).format(new Date(session.value.startedAt)) : '')
 useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` })
 </script>
 
@@ -83,7 +93,10 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
     >
       Otwieranie treningu…
     </p>
-    <div class="mb-6 space-y-3 border-b border-white/15 pb-5">
+    <div
+      v-if="!deleted"
+      class="mb-6 space-y-3 border-b border-white/15 pb-5"
+    >
       <p
         role="status"
         class="text-sm"
@@ -133,6 +146,17 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
         </UiBaseButton>
       </div>
     </div>
+    <p
+      v-if="deleted"
+      role="status"
+      class="mb-5 text-secondary"
+    >
+      Ten trening został trwale usunięty.
+      <NuxtLink
+        to="/progress"
+        class="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+      >Wróć do historii</NuxtLink>
+    </p>
     <UiBaseButton
       v-if="local?.conflict && local.start"
       variant="secondary"
@@ -143,6 +167,17 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
       Anuluj próbę rozpoczęcia
     </UiBaseButton>
     <template v-if="session">
+      <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-secondary">
+          {{ sessionDate }}
+        </p><UiBaseButton
+          variant="secondary"
+          :disabled="loading || saving > 0 || deleting"
+          @click="deleteDialog = true"
+        >
+          Usuń ten trening
+        </UiBaseButton>
+      </div>
       <WorkoutRestTimer
         v-if="session.status === 'active'"
         :ends-at="session.restEndsAt"
@@ -251,6 +286,46 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
         </UiBaseButton>
       </div>
     </template>
+    <UiDialog
+      v-if="deleteDialog && session"
+      title="Trwale usunąć trening?"
+      :busy="deleting"
+      @close="deleteDialog = false"
+    >
+      <p class="font-semibold">
+        {{ session.workoutName }}
+      </p><p class="mt-1 text-sm text-secondary">
+        {{ sessionDate }} · {{ summary?.completed }} wykonanych serii
+      </p><p class="mt-5 leading-relaxed text-secondary">
+        Usuniesz tę sesję i wszystkie jej serie z historii. Przestanie być uwzględniana w statystykach, rekordach i kolejnych sugestiach ciężaru. Planu treningowego to nie zmieni. Tej operacji nie można cofnąć.
+      </p><p
+        v-if="local?.queue.length || local?.conflict"
+        class="mt-3 text-sm text-accent"
+      >
+        Usunięcie odrzuci również lokalny szkic i niewysłane zmiany tego treningu.
+      </p><p
+        v-if="error"
+        role="alert"
+        class="mt-4 text-sm text-red-300"
+      >
+        {{ error }}
+      </p><div class="mt-6 flex flex-wrap gap-3">
+        <UiBaseButton
+          variant="secondary"
+          :disabled="deleting"
+          @click="deleteDialog = false"
+        >
+          Anuluj
+        </UiBaseButton><UiBaseButton
+          variant="secondary"
+          class="border-red-300/50 text-red-300"
+          :busy="deleting"
+          @click="confirmDelete"
+        >
+          {{ deleting ? 'Usuwanie…' : 'Usuń trwale' }}
+        </UiBaseButton>
+      </div>
+    </UiDialog>
     <UiDialog
       v-if="finishDialog"
       :title="finishDialog === 'completed' ? 'Zakończyć trening?' : 'Porzucić trening?'"

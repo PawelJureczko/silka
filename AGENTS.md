@@ -62,7 +62,7 @@ Stan po etapie 5 i wdrożeniu etapu 6: istnieje fundament Nuxt 4/Vue 3/TypeScrip
 - Włącz RLS na każdej tabeli dostępnej przez API. Zabezpieczaj wszystkie dozwolone operacje, w tym wynik zapisu przez `WITH CHECK`.
 - Własność danych wynika z `auth.uid()`, nie z parametrów JSON, stanu formularza ani wybranego profilu.
 - Zabezpieczaj relacje między prywatnymi rekordami złożonymi FK zawierającymi `user_id`.
-- Dla katalogu ćwiczeń odróżniaj wspólny odczyt od prywatnego zapisu. Nie pozwalaj użytkownikowi utworzyć wspólnego rekordu przez `owner_id = null`.
+- Katalog ćwiczeń jest wspólny dla zalogowanych użytkowników: wszystkie rekordy mają `owner_id = null`. Zalogowane konto może odczytać katalog i dodać ćwiczenie; edycja, archiwizacja i usuwanie wpisów pozostają administracyjne. Nie udostępniaj anonimowo katalogu ani prywatnych planów i historii.
 - Sprawdzaj dostęp do wskazanego ćwiczenia także po stronie bazy.
 - Funkcje RPC domyślnie używają uprawnień wywołującego. Jeśli potrzebne jest `SECURITY DEFINER`, uzasadnij wyjątek, ogranicz uprawnienia i `search_path` oraz jawnie sprawdź tożsamość i własność.
 - Widoki i funkcje nie mogą obchodzić RLS. Widoki udostępnione klientowi powinny używać `security_invoker = true` tam, gdzie jest to właściwe.

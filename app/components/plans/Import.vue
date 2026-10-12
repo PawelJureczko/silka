@@ -159,7 +159,7 @@ async function approve() {
         <h2 class="text-lg font-semibold">
           Dopasuj ćwiczenia
         </h2><p class="text-sm leading-relaxed text-secondary">
-          Ćwiczenia własne drugiej osoby wymagają wyboru odpowiednika lub dodania ćwiczenia do Twojego katalogu. Zachowaj ten sam sposób liczenia ciężaru.
+          Ćwiczenia spoza wspólnego katalogu wymagają wyboru odpowiednika lub dodania nowej pozycji dostępnej dla wszystkich użytkowników Siłki. Zachowaj ten sam sposób liczenia ciężaru.
         </p><div
           v-for="exercise in source.exercises"
           :key="exercise.id"

@@ -7,6 +7,26 @@ type Client = SupabaseClient<Database>
 export class WorkoutConflict extends Error {
   constructor(message = 'Trening zmienił się na innym urządzeniu. Twój szkic pozostaje bezpieczny lokalnie. Odczytaj wersję z konta, aby rozstrzygnąć konflikt.') { super(message) }
 }
+export class WorkoutDeleted extends Error {
+  sessionId: string
+  constructor(sessionId: string) {
+    super('Ten trening został trwale usunięty.')
+    this.sessionId = sessionId
+  }
+}
+export async function isWorkoutDeleted(client: Client, id: string) {
+  const { data, error } = await client.from('deleted_workout_sessions').select('session_id').eq('session_id', id).abortSignal(AbortSignal.timeout(12000)).maybeSingle()
+  // Older databases must still sync workouts until the deletion migration is installed.
+  if (error?.code === 'PGRST205') return false
+  if (error) throw new Error('Nie udało się sprawdzić stanu treningu. Ponów po odzyskaniu połączenia.')
+  return Boolean(data)
+}
+export async function deleteWorkout(client: Client, id: string, revision: number) {
+  const { error } = await client.rpc('delete_workout', { p_id: id, p_base_revision: revision }).abortSignal(AbortSignal.timeout(12000))
+  if (error?.code === 'PGRST202') throw new Error('Usuwanie treningów nie jest jeszcze dostępne. Spróbuj po aktualizacji aplikacji.')
+  if (error?.code === 'PT409') throw new WorkoutConflict('Trening zmienił się od ostatniego odczytu. Odczytaj wersję z konta przed ponownym usunięciem.')
+  if (error) throw new Error('Nie potwierdzono usunięcia treningu. Sprawdź połączenie i ponów; ponowienie jest bezpieczne.')
+}
 function checkError(error: { code?: string } | null) {
   if (!error) return
   if (error.code === 'PT409') throw new WorkoutConflict()
@@ -14,18 +34,21 @@ function checkError(error: { code?: string } | null) {
 }
 export async function startWorkout(client: Client, id: string, workoutId: string, revision: number) {
   const { error } = await client.rpc('start_workout', { p_id: id, p_workout_id: workoutId, p_plan_revision: revision }).abortSignal(AbortSignal.timeout(12000))
+  if (error?.code === 'PT410') throw new WorkoutDeleted(id)
   if (error && ['23514', '42501'].includes(error.code))
     throw new WorkoutConflict('Nie można rozpocząć treningu z tego planu. Plan lub ćwiczenia nie są już dostępne. Anuluj próbę i odczytaj aktualne dane na ekranie Start.')
   checkError(error)
 }
 export async function saveWorkout(client: Client, id: string, revision: number, operationId: string, payload: WorkoutPayload) {
   const { data, error } = await client.rpc('save_workout', { p_id: id, p_base_revision: revision, p_operation_id: operationId, p_payload: payload }).abortSignal(AbortSignal.timeout(12000))
+  if (error?.code === '42501' && await isWorkoutDeleted(client, id)) throw new WorkoutDeleted(id)
   checkError(error)
   if (data === null) throw new Error('Brak potwierdzenia zapisu. Ponów synchronizację.')
   return data
 }
 export async function fetchWorkout(client: Client, id: string) {
-  const { data, error } = await client.from('workout_sessions').select('*,workout_exercises(*,workout_sets(*))').eq('id', id).abortSignal(AbortSignal.timeout(12000)).single()
+  const { data, error } = await client.from('workout_sessions').select('*,workout_exercises(*,workout_sets(*))').eq('id', id).abortSignal(AbortSignal.timeout(12000)).maybeSingle()
+  if (!error && !data && await isWorkoutDeleted(client, id)) throw new WorkoutDeleted(id)
   if (error || !data) throw new Error('Nie udało się odczytać treningu z konta.')
   return workoutSchema.parse({ id: data.id, userId: data.user_id, planId: data.plan_id, sourceWorkoutId: data.source_workout_id,
     planRevision: data.plan_revision_snapshot, planName: data.plan_name_snapshot, workoutName: data.workout_name_snapshot,

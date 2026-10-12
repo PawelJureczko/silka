@@ -2,7 +2,7 @@
 
 Prywatna aplikacja treningowa dla dwóch osób. Założenia produktu i etapy: [PROJECT.md](PROJECT.md). Zasady pracy: [AGENTS.md](AGENTS.md).
 
-Zrealizowano etapy 1–5: Nuxt 4, Vue 3, TypeScript strict, Tailwind 4, mobilną nawigację, Auth, profil i bazę z RLS. Działają katalog, własne ćwiczenia, edytor jednostek i serii, aktywne przypisanie, archiwizacja i przywracanie oraz eksport/import kopii z podglądem. Działa aktywny trening: dashboard, serie, poprzednie wyniki, odpoczynek, lokalny szkic i synchronizacja oraz podsumowanie. Działają historia z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycja profilu. Ręczna konsultacja AI obsługuje prompty, cztery akcje JSON v1 i zatwierdzany zapis. Etap 6 ma pliki instalacyjne PWA, otwieranie bez serwera, ręczne aktualizacje i wdrożenie HTTPS; testy fizycznego iPhone’a pozostają otwarte.
+Zrealizowano etapy 1–5: Nuxt 4, Vue 3, TypeScript strict, Tailwind 4, mobilną nawigację, Auth, profil i bazę z RLS. Działają wspólny katalog z dodawaniem ćwiczeń przez zalogowane konta, edytor jednostek i serii, aktywne przypisanie, archiwizacja i przywracanie oraz eksport/import kopii z podglądem. Działa aktywny trening: dashboard, serie, poprzednie wyniki, odpoczynek, lokalny szkic i synchronizacja oraz podsumowanie. Działają historia z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycja profilu. Ręczna konsultacja AI obsługuje prompty, cztery akcje JSON v1 i zatwierdzany zapis. Etap 6 ma pliki instalacyjne PWA, otwieranie bez serwera, ręczne aktualizacje i wdrożenie HTTPS; testy fizycznego iPhone’a pozostają otwarte.
 
 ## Uruchomienie z Supabase w chmurze
 
@@ -19,7 +19,13 @@ W tym środowisku `.env` jest już skonfigurowany dla projektu `silka`. Konto do
 
 Panel projektu: https://supabase.com/dashboard/project/dtuyllkefazftqphwfdc
 
-Migracje `20261011000100`–`20261011001000` oraz początkowy `seed.sql` zostały zastosowane w tym projekcie przez SQL Editor; wersje zapisano w `supabase_migrations.schema_migrations`. Baza zawiera 19 wspólnych ćwiczeń i 11 tabel z RLS. Funkcje planów, treningów, postępów, profilu i konsultacji działają z uprawnieniami wywołującego, dostępne dla `authenticated` i niedostępne dla `anon`. Kolejne zmiany zapisuj jako nowe migracje i stosuj przez Supabase CLI po zalogowaniu oraz powiązaniu z właściwym projektem. Nie uruchamiaj ponownie zastosowanych migracji w istniejącej bazie.
+Migracje `20261011000100`–`20261012000300` oraz początkowy `seed.sql` zostały zastosowane w tym projekcie przez SQL Editor; wersje zapisano w `supabase_migrations.schema_migrations`. Bazowy katalog ma 81 ćwiczeń w 9 grupach mięśniowych. Produkcja ma obecnie 85 wspólnych wpisów, w tym 4 dawniej prywatne, oraz 12 tabel z RLS. Funkcje planów, zapisu treningów, postępów, profilu i konsultacji działają z uprawnieniami wywołującego (usuwanie treningu jest opisanym poniżej wyjątkiem), dostępne dla `authenticated` i niedostępne dla `anon`. Kolejne zmiany zapisuj jako nowe migracje i stosuj przez Supabase CLI po zalogowaniu oraz powiązaniu z właściwym projektem. Nie uruchamiaj ponownie zastosowanych migracji w istniejącej bazie.
+
+Rozszerzenie katalogu `20261011001100` zastosowano lokalnie przez `supabase migration up --local`, następnie w chmurze w transakcji z zapisem wersji. Przeszły `npm run test:db` (75/75) oraz `npm run test:plans` (7/7). Sprawdzono 80 wspólnych aktywnych rekordów, 61 nowych i brak powtórzonych nazw. W produkcyjnej aplikacji pierwsza strona pobrała 50 pozycji, „Pokaż więcej” dołączyło pozostałe 30 bez duplikatów, a wyszukiwanie „przysiad” zwróciło 7 wariantów. Wybór nowego ćwiczenia pokazał komunikat dostępności. Zmiana dotyczy danych katalogu, więc nowe ćwiczenia są dostępne po ponownym otwarciu katalogu z połączeniem internetowym, bez aktualizacji PWA.
+
+Migracja `20261012000100_add_lying_leg_curl.sql` dodaje „Uginanie nóg leżąc na maszynie” jako osobne wspólne ćwiczenie: kg łącznie, domyślny krok 2,5 kg. Zastosowano ją lokalnie i w chmurze z zapisem wersji. Lokalne ponowienie nie dodało duplikatu: katalog ma 81 aktywnych wspólnych rekordów. Ponownie przeszły `npm run test:db` (75/75) i `npm run test:plans` (7/7). Migracja nie zmienia schematu ani RLS; nie wymaga regenerowania typów lub wdrażania nowego builda. Prywatne plany zapisujemy osobno przez RPC, bez danych kont w migracji.
+
+Migracja `20261012000200_share_exercise_catalog.sql` jest zastosowana lokalnie i w produkcji. Wszystkie ćwiczenia są wspólne dla zalogowanych użytkowników; dodawanie przez aplikację tworzy wspólny wpis. `owner_id` pozostaje zawsze `null`, edycja i usuwanie są administracyjne, a anonimowe konto nie ma dostępu do katalogu. Zachowano ID, pozostałe parametry ćwiczeń oraz prywatne plany i historię; skrypt produkcyjny porównał ich odciski przed zatwierdzeniem. Przeszły testy RLS (81), planów (7), treningów (7), jednostkowe (28), lint, typecheck i build. Regeneracja typów nie wykazała różnic. Teksty formularza i katalogu opisują teraz wspólną bazę ćwiczeń.
 
 ## Lokalne środowisko bez danych prywatnych
 
@@ -72,7 +78,7 @@ npm run build
 
 Ręcznie sprawdzono błędne hasło, logowanie obu lokalnych kont, nawigację, sesję po odświeżeniu, wylogowanie, zmianę konta i ochronę bezpośredniego wejścia na prywatny ekran. Widok 390 × 844 nie ma poziomego przewijania; elementy dolnej nawigacji mają wysokość 56 px. Test przeglądarki nie zastępuje testów na fizycznym iPhonie.
 
-Etap 2 sprawdzono w przeglądarce na dwóch lokalnych kontach: utworzenie i edycja planu, ciężary `82,5`, `80` oraz puste pole, zmiana kolejności i odczyt po odświeżeniu, prywatne ćwiczenie z ciężarem na rękę, eksport, anulowanie importu, jawne mapowanie ćwiczenia i zatwierdzony import na drugim koncie. Drugie konto nie widzi oryginalnego planu. Sprawdzono aktywację, archiwizację i przywracanie. Fikcyjne plany z tego testu pozostają wyłącznie w lokalnej bazie.
+Etap 2 sprawdzono w przeglądarce na dwóch lokalnych kontach: utworzenie i edycja planu, ciężary `82,5`, `80` oraz puste pole, zmiana kolejności i odczyt po odświeżeniu, ćwiczenie z ciężarem na rękę (wówczas prywatne, od migracji `20261012000200` wspólne), eksport, anulowanie importu, jawne mapowanie ćwiczenia i zatwierdzony import na drugim koncie. Drugie konto nie widzi oryginalnego planu. Sprawdzono aktywację, archiwizację i przywracanie. Fikcyjne plany z tego testu pozostają wyłącznie w lokalnej bazie.
 
 ## Plany i kopie
 
@@ -101,6 +107,25 @@ Podczas treningu „Zaproponuj ciężar” sprawdza ostatnią zgodną sesję. Ko
 Profil pozwala ustawić nazwę, cel, strefę czasową i cel tygodnia (domyślnie 3, zakres 1–7). Zmiana celu przelicza prezentowaną regularność. Wyjście z edycji wymaga potwierdzenia odrzucenia formularza.
 
 Etap 4 sprawdzono w przeglądarce w widoku 390 × 844 na lokalnych danych: wykres ciężaru i objętości, rekord, filtry, druga strona historii, zapis profilu, anulowanie i zatwierdzenie edytowanego ciężaru `83,75`, zachowanie po odświeżeniu oraz brak cudzej historii po zmianie konta. Wyłączenie lokalnego API pokazuje błędy odczytu; po jego przywróceniu ponowienie odzyskuje dane. Fikcyjne sesje są wyłącznie w lokalnej bazie. Migracje postępów zastosowano również w chmurze; aplikacja z rzeczywistym kontem pokazuje poprawny pusty stan.
+
+## Trwałe usuwanie treningu
+
+Otwórz sesję z historii w Postępach albo aktywny trening ze Startu. Wybierz „Usuń ten trening”, sprawdź nazwę, datę i liczbę serii, następnie „Usuń trwale”. „Anuluj” i Escape pozostawiają sesję bez zmian. Można usunąć trening pusty, aktywny, zakończony lub porzucony; nie trzeba najpierw oznaczać żadnej serii jako wykonanej.
+
+Usunięcie wymaga internetu i obejmuje dane sesji, jej ćwiczenia oraz lokalną kolejkę tego treningu. Nie usuwa planu. Wyniki znikają z historii i kolejnych wyliczeń statystyk, rekordów oraz sugestii. Zapisane wcześniej konsultacje AI zachowują swoje snapshoty. Przy konflikcie rewizji odczytaj aktualną wersję z konta, potwierdzając ewentualne odrzucenie lokalnego szkicu, zanim ponowisz usuwanie. Po niepewnej odpowiedzi serwera ponowienie jest bezpieczne.
+
+Migracja `20261012000300_delete_workouts.sql` jest zastosowana lokalnie i w produkcji z zapisem wersji. Skrypt wdrożeniowy potwierdził niezmienność istniejących danych oraz uprawnienia; nie usunął żadnej sesji. Zmiana interfejsu wymaga aktualnego builda aplikacji. Prywatna tabela `deleted_workout_sessions` zachowuje wyłącznie UUID sesji i właściciela, aby opóźniona synchronizacja nie odtworzyła skasowanych danych. Klient ma do niej tylko odczyt; usuwanie sesji odbywa się przez RPC sprawdzające właściciela i rewizję.
+
+Testy: `npm run test:workouts` obejmuje także `workout-deletion.test.mjs`: dwa fikcyjne konta i anon, cascade, pusty trening, porzucenie, statystyki, konflikt rewizji, ponowienie i spóźnione operacje.
+
+Weryfikacja z 12.10.2026: lint i typecheck przeszły, testy jednostkowe 31/31, treningów 16/16 i pgTAP RLS 81/81. Build z oddzielnym katalogiem `SILKA_TEST_BUILD_DIR=.nuxt-pwa-test npm run build` przeszedł i wygenerował 53 zasoby PWA; zwykły build wymaga zakończenia serwera dev korzystającego z `.nuxt`. Typy wygenerowano z rzeczywistej lokalnej bazy, a wersję migracji zapisano w jej historii.
+
+Przegląd interfejsu dotyczył wyłącznie dodanej funkcji, według kierunku `DESIGN.md` (ENERGY 2 / RHYTHM 2 / MOTION 1):
+
+- PASS, układ: okno mieści się przy 390 px i na szerokim ekranie; nazwa sesji, data i liczba serii wskazują dokładnie usuwane dane. Zrzuty lokalne: `/tmp/silka-usuwanie-mobile.png` i `/tmp/silka-usuwanie-potwierdzenie.png`.
+- PASS, cel wyglądu: istniejąca typografia i dialog; czerwony opis wyróżnia nieodwracalną akcję. Bez nowych ozdobników, ikon, fontów, animacji i zależności.
+- PASS, obsługa: otwarcie, Anuluj, Tab i Escape sprawdzono w przeglądarce; nowe kontrolki mają 48 px wysokości. Transakcyjne usuwanie oraz błędy potwierdzają testy RPC i usług. Nie klikano trwałego usuwania prawdziwego treningu.
+- PASS, odzyskanie: przy zatrzymanej lokalnej bramie API dopisana seria przetrwała odświeżenie. Usunięcie fikcyjnej sesji przez RPC z osobnego połączenia i powrót API spowodowały rozpoznanie usunięcia, wyczyszczenie jej kolejki oraz brak wznowienia na Starcie. Konto testowe posprzątano, bramę przywrócono. Nie jest to test fizycznego iPhone’a.
 
 ## Ręczna konsultacja AI
 
@@ -137,7 +162,7 @@ Aktualizację uruchom z Profilu. Aplikacja najpierw sprawdza lokalny zapis wszys
 Przed uznaniem etapu 6 za zakończony:
 
 - Potwierdzenie izolacji dwóch rzeczywistych kont na wdrożonej aplikacji HTTPS.
-- Fizyczny iPhone: instalacja, safe area, klawiatura i obsługa jedną ręką.
+- Fizyczny iPhone: safe area, klawiatura i obsługa jedną ręką. Użytkownik potwierdził instalację PWA; zachowanie treningu na urządzeniu nadal wymaga testów.
 - Tryb samolotowy po załadowaniu treningu: seria, zamknięcie/ponowne otwarcie, zakończenie, odzyskanie sieci i brak duplikatów.
 - Powrót z tła i blokady ekranu: timer oraz lokalny szkic. Alarm na zablokowanym ekranie nie jest oferowany.
 - Aktualizacja podczas sesji i po synchronizacji, także przy dwóch otwartych kartach.

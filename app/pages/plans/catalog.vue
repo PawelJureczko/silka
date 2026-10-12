@@ -12,7 +12,7 @@ const message = ref('')
     <UiPageHeading
       eyebrow="Twoje narzędzia"
       title="Katalog ćwiczeń"
-      description="Wspólny katalog i własne ćwiczenia. Każde z jasnym sposobem liczenia ciężaru."
+      description="Wspólna baza ćwiczeń dla wszystkich użytkowników Siłki. Każde z jasnym sposobem liczenia ciężaru."
     />
     <p
       v-if="message"

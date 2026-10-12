@@ -10,9 +10,11 @@ Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, 
 
 Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
 
-Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 11 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Projekt Vercel `silka` działa na Hobby pod https://silka-jureczko.vercel.app. Gałąź produkcyjna to `feat/progress`; push uruchamia wdrożenie. `main` nadal zawiera dokumentację. Potwierdzono logowanie rzeczywistego użytkownika, odczyt profilu, zapis plików PWA oraz publiczne zasoby i routing HTTPS. Izolacja kont była testowana lokalnie; test dwóch rzeczywistych kont pozostaje do wydania.
+Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 12 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Projekt Vercel `silka` działa na Hobby pod https://silka-jureczko.vercel.app. Gałąź produkcyjna to `feat/progress`; push uruchamia wdrożenie. `main` nadal zawiera dokumentację. Potwierdzono logowanie rzeczywistego użytkownika, odczyt profilu, zapis plików PWA oraz publiczne zasoby i routing HTTPS. Izolacja kont była testowana lokalnie; test dwóch rzeczywistych kont pozostaje do wydania.
 
-Migracje `20261011000100`–`20261011001000` są zastosowane lokalnie i w chmurze, z historią migracji. Wspólny katalog zawiera 19 ćwiczeń. RPC planów, treningów, postępów, profilu i konsultacji działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
+Migracje `20261011000100`–`20261012000300` są zastosowane lokalnie i w chmurze, z historią migracji. Bazowy katalog zawiera 81 ćwiczeń w 9 grupach mięśniowych. Migracja `20261012000200` udostępnia wszystkie ćwiczenia zalogowanym kontom i pozwala dodawać nowe wspólne wpisy. Produkcja zawiera po niej 85 rekordów, w tym 4 dawniej prywatne; lokalna baza ma własne dane. Edycja, archiwizacja i usuwanie katalogu są administracyjne. Nie scalamy automatycznie podobnych nazw ani nie zmieniamy identyfikatorów, relacji i historii. Migracja `20261011001100` dodaje 61 pozycji bez zmiany wcześniejszych identyfikatorów. Migracja `20261012000100` dodaje osobne „Uginanie nóg leżąc na maszynie” z obciążeniem liczonym łącznie i domyślnym krokiem 2,5 kg; wariant zachowuje własną historię względem ogólnego uginania nóg na maszynie. Prywatne plany użytkowników zapisujemy oddzielnie od migracji katalogu, przez transakcyjne RPC z RLS; nie umieszczamy ich w seedzie ani repozytorium. RPC planów, zapisu treningów, postępów, profilu i konsultacji działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Usuwanie treningu jest ograniczonym wyjątkiem opisanym w etapie 3. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
+
+Katalog obejmuje warianty na sztandze, z hantlami, na maszynach, wyciągach oraz z masą ciała i asystą. Ciężar to wartość łączna, na rękę lub asysta zgodnie z etykietą ćwiczenia. Dla rozpiętek na bramie zapisujemy ciężar jednego stosu na rękę; dla podciągania i pompek na poręczach z dodatkowym ciężarem tylko dodane obciążenie, bez masy ciała. Kroki ciężaru są domyślnymi wartościami do sugestii, nie opisem każdej maszyny. Ćwiczenia mierzone czasem lub dystansem wymagają osobnego rozszerzenia modelu serii i nie należą do tego katalogu.
 
 Stan sprawdzony 11 października 2026: lokalny katalog był pusty i nie był checkoutem Git. GitHub zwracał publiczne repozytorium bez gałęzi domyślnej, o rozmiarze 0 KB. Przy przygotowaniu dokumentacji nie inicjalizowano aplikacji ani usług.
 
@@ -32,11 +34,12 @@ Priorytety:
 
 - Dwa osobne konta i logowanie przez Supabase Auth.
 - Tworzenie, edytowanie i archiwizowanie własnych planów.
-- Katalog ćwiczeń oraz ćwiczenia własne.
+- Wspólny katalog ćwiczeń z możliwością dodawania pozycji przez zalogowanych użytkowników.
 - Jednostki treningowe z kolejnością ćwiczeń, seriami, zakresem powtórzeń, ciężarem i odpoczynkiem.
 - Przypisanie własnego planu jako aktywnego.
 - Przekazanie planu drugiej osobie przez eksport/import niezależnej kopii.
 - Rozpoczęcie, wznowienie, zakończenie i porzucenie treningu.
+- Trwałe usunięcie własnej sesji po potwierdzeniu, także pustej i aktywnej.
 - Zapisywanie ciężarów i powtórzeń, dodawanie serii i oznaczanie ich jako wykonane lub pominięte.
 - Porównanie z poprzednią zakończoną sesją tego samego ćwiczenia.
 - Minutnik odpoczynku.
@@ -54,7 +57,7 @@ Poza MVP pozostają wspólna edycja planów, dostęp do cudzych postępów, publ
 - Dwa konta są zakładane ręcznie; publiczna rejestracja jest wyłączona w konfiguracji Auth.
 - Logowanie e-mail/hasło nie wymaga płatnego dostawcy SMS. Obsługę odzyskiwania hasła trzeba sprawdzić z rzeczywistą konfiguracją poczty przed wydaniem.
 - Każdy plan należy do konta, któremu jest przypisany. Przekazanie planu tworzy kopię z nowymi identyfikatorami i właścicielem wynikającym z zalogowanej sesji.
-- Import kopii nie daje dostępu do historii, konta ani prywatnego katalogu drugiej osoby.
+- Import kopii nie daje dostępu do historii ani konta drugiej osoby. Katalog ćwiczeń jest wspólny dla zalogowanych użytkowników.
 - Baza jest źródłem zapisanych danych; lokalny zapis chroni aktywną pracę i oczekujące zmiany.
 
 ## Stack i architektura
@@ -191,7 +194,7 @@ Każda prywatna tabela ma `user_id`. Identyfikatory są UUID. W tabelach edytowa
 | Tabela | Główne pola poza identyfikatorami i znacznikami czasu |
 | --- | --- |
 | `profiles` | `user_id` jako PK i FK do `auth.users`, `display_name`, `training_goal`, `timezone`, `preferences` |
-| `exercises` | `owner_id` nullable, `name`, `equipment`, `muscle_group`, `load_mode`, `weight_convention`, `weight_increment_kg`, `archived_at` |
+| `exercises` | `owner_id` zawsze `null` (pole zachowane dla zgodności), `name`, `equipment`, `muscle_group`, `load_mode`, `weight_convention`, `weight_increment_kg`, `archived_at` |
 | `training_plans` | `user_id`, `name`, `description`, `revision`, `archived_at` |
 | `plan_assignments` | `user_id`, `plan_id`, `is_active`, `starts_on` |
 | `plan_workouts` | `user_id`, `plan_id`, `name`, `position`, opcjonalny `weekday` |
@@ -200,6 +203,7 @@ Każda prywatna tabela ma `user_id`. Identyfikatory są UUID. W tabelach edytowa
 | `workout_sessions` | `user_id`, `plan_id` nullable, `plan_revision_snapshot`, `plan_name_snapshot`, `workout_name_snapshot`, `source_workout_id` nullable bez FK, `started_at`, `finished_at` nullable, `rest_ends_at` nullable, `status`, `revision`, `last_operation_id`, `last_operation_hash` |
 | `workout_exercises` | `user_id`, `session_id`, `exercise_id`, `exercise_name_snapshot`, `equipment_snapshot`, `load_mode_snapshot`, `weight_convention_snapshot`, `position`, `rest_seconds`, `notes` |
 | `workout_sets` | `user_id`, `workout_exercise_id`, `position`, `set_type`, planowane zakresy i ciężar, `reps` nullable, `weight_kg` nullable, `status`, `completed_at` nullable |
+| `deleted_workout_sessions` | `session_id` i `user_id` jako złożony PK; tylko znacznik zapobiegający odtworzeniu usuniętej sesji, bez wyników i nazw |
 
 Relacje:
 
@@ -234,8 +238,8 @@ exercises → workout_exercises
 - RLS jest włączone na wszystkich tabelach dostępnych przez API.
 - Prywatne dane są dostępne wyłącznie dla `authenticated` z `auth.uid() = user_id`.
 - Polityki obejmują `SELECT`, `INSERT`, `UPDATE`, `DELETE`; `WITH CHECK` zabezpiecza również wynik zapisu i podmianę właściciela.
-- Ćwiczenia z `owner_id IS NULL` są wspólnym katalogiem do odczytu dla zalogowanych kont. Zwykły użytkownik nie może ich tworzyć, zmieniać ani usuwać.
-- Własne ćwiczenia są prywatne. Użycie `exercise_id` musi wskazywać ćwiczenie wspólne albo należące do bieżącego użytkownika, co jest sprawdzane także przy zapisie w bazie.
+- Wszystkie ćwiczenia mają `owner_id IS NULL`, wymuszone ograniczeniem bazy. Zalogowane konta mogą odczytać katalog i dodawać wspólne wpisy. Nie mają uprawnień UPDATE/DELETE katalogu; poprawki i archiwizacja pozostają administracyjne. Anonimowe konto nie odczytuje ani nie zapisuje katalogu.
+- Użycie `exercise_id` wymaga istniejącego dostępnego ćwiczenia; zapis planu odrzuca również wpisy archiwalne. Historyczne warunki RPC dopuszczające właściciela zachowują zgodność, lecz nie umożliwiają prywatnych wpisów przez ograniczenie `owner_id IS NULL`.
 - RPC nie przyjmuje tożsamości z importowanego JSON. Użytkownik wynika z sesji Auth; relacje i uprawnienia są sprawdzane w transakcji.
 - Widoki statystyczne dostępne przez API muszą respektować RLS, np. przez `security_invoker = true`.
 - Publiczny klucz klienta Supabase nie zastępuje RLS. `service_role` i inne klucze administracyjne nie mogą trafić do aplikacji ani repozytorium.
@@ -271,6 +275,8 @@ Zasady odporności:
 
 ### Zaimplementowane zachowanie etapu 3
 
+- Szczegóły sesji zawierają „Usuń ten trening” i osobne potwierdzenie z nazwą, datą i liczbą wykonanych serii. Usunięcie wymaga sieci; obejmuje sesję, jej ćwiczenia, serie oraz lokalną kolejkę tej sesji. Nie zmienia planu ani innego aktywnego treningu. Statystyki, rekordy i kolejne sugestie są liczone z pozostałej historii. Wcześniej zapisane konteksty konsultacji AI pozostają niezależnymi snapshotami.
+- Migracja `20261012000300_delete_workouts.sql` jest zastosowana lokalnie i w chmurze z zapisem wersji. Przy wdrożeniu sprawdzono niezmienność istniejących planów i historii oraz uprawnienia; migracja nie usunęła żadnej sesji. `delete_workout` jest ograniczonym wyjątkiem `SECURITY DEFINER` z pustym `search_path`, sprawdzeniem `auth.uid()`, własności i rewizji oraz wspólną blokadą operacji treningów. Bezpośredni DELETE klienta jest zabroniony. Transakcja zapisuje prywatny znacznik usunięcia i usuwa graf przez FK cascade. Ponowienie nie powiela operacji, konflikt rewizji niczego nie usuwa. Klient nie może usuwać znaczników, a trigger blokuje odtworzenie UUID przez spóźniony start, insert lub zmianę ID. Synchronizacja rozpoznaje usuniętą sesję i usuwa wyłącznie jej lokalny dziennik.
 - Start zapisuje lokalnie zamiar ze stabilnym UUID, następnie RPC atomowo kopiuje jednostkę z konkretnej rewizji planu. Nie podstawia planowanego ciężaru jako wykonanego. Pierwsze pobranie sesji wymaga sieci. Ponowienie po utracie odpowiedzi zwraca istniejącą sesję.
 - Dashboard wybiera jednostkę przypisaną do dzisiejszego dnia albo kolejną po ostatniej zakończonej sesji aktywnego planu (wśród 30 ostatnich sesji). Użytkownik może zmienić wybór. Zmiana planu odtwarza ID jednostek i może zresetować wybór do pierwszej. Dashboard pokazuje trzy ostatnie sesje i dokładną liczbę zakończonych sesji rozpoczętych w bieżącym tygodniu według strefy profilu.
 - IndexedDB `silka-workouts` przechowuje jeden bieżący lub ostatni dziennik na konto. Zapis używa transakcji z `durability: strict`; UI potwierdza lokalny sukces dopiero po jej zakończeniu. Web Locks szereguje modyfikacje i synchronizację między kartami, a BroadcastChannel odświeża ich stan. Wymagane są obsługujące je przeglądarki i HTTPS lub localhost.
@@ -396,13 +402,13 @@ Przykład odpowiedzi dla utworzenia planu. UUID są przykładowe; w rzeczywistej
 - Treść LLM wyświetlamy jako tekst. Nie wykonujemy kodu ani HTML pochodzącego z odpowiedzi.
 - Nowe, niezgodne kontrakty otrzymują nowy `schemaVersion`; nie zmieniamy po cichu znaczenia istniejącej wersji.
 
-Zwykły eksport/import kopii planu jest osobnym przepływem od konsultacji AI. Przenosi dane planu, nie tożsamość ani historię właściciela; tworzy nowy własny plan po podglądzie i zatwierdzeniu. Mapowanie ćwiczeń własnych drugiej osoby wymaga jawnej decyzji odbiorcy.
+Zwykły eksport/import kopii planu jest osobnym przepływem od konsultacji AI. Przenosi dane planu, nie tożsamość ani historię właściciela; tworzy nowy własny plan po podglądzie i zatwierdzeniu. Mapowanie ćwiczeń spoza wspólnego katalogu wymaga jawnej decyzji odbiorcy.
 
 ### Zaimplementowany eksport kopii planu v1
 
 Osobny kontrakt `format: "silka-plan"`, `schemaVersion: 1` zawiera `plan` zgodny z powyższą strukturą oraz `exercises`: opisy wyłącznie użytych ćwiczeń (`id`, `name`, `equipment`, `muscleGroup`, `loadMode`, `weightConvention`, `weightIncrementKg`). Nie zawiera identyfikatora konta, e-maila ani historii. Notatki do ćwiczeń i opis planu są częścią kopii, co UI pokazuje przed eksportem. Limit całego pliku wynosi 256 KiB UTF-8. Nieznane pola, wersje, brakujące, nieużyte lub powtórzone opisy ćwiczeń są odrzucane.
 
-Importer dopasowuje dostępne ćwiczenia po ID i zgodnej konwencji obciążenia. Pozostałe wymagają jawnego wyboru lub utworzenia własnego ćwiczenia. Zatwierdzenie zapisuje nowy plan „… — kopia”; nie ustawia go automatycznie jako aktywnego. Anulowanie podglądu nie zapisuje planu. Osobno zatwierdzone dodanie ćwiczenia do katalogu pozostaje na koncie.
+Importer dopasowuje dostępne ćwiczenia po ID i zgodnej konwencji obciążenia. Pozostałe wymagają jawnego wyboru lub utworzenia nowego wspólnego ćwiczenia. Zatwierdzenie zapisuje nowy plan „… — kopia”; nie ustawia go automatycznie jako aktywnego. Anulowanie podglądu nie zapisuje planu. Osobno zatwierdzone dodanie ćwiczenia pozostaje we wspólnym katalogu.
 
 Zapis całego planu, aktywacja i archiwizacja są transakcyjnymi RPC działającymi z RLS wywołującego. Zapis używa bazowej rewizji i stabilnego ID operacji; ponowienie ostatniego zapisu z identycznymi danymi zwraca istniejący wynik. Zmiana danych pod tym samym ID operacji jest odrzucana. Nieaktualna rewizja blokuje nadpisanie. Po nowszej operacji wymagany jest ponowny odczyt. Archiwizacja usuwa aktywne przypisanie, a przywrócenie go nie odtwarza. Edytor planów wymaga sieci; lokalne zabezpieczenie aktywnego treningu działa od etapu 3.
 
@@ -466,7 +472,7 @@ Plan kopii danych: możliwość eksportu własnych danych z aplikacji, ręczny b
 ## Decyzje pozostawione do odpowiedniego etapu
 
 - Instalacja i testy fizycznego iPhone’a — na opublikowanej wersji Vercel Hobby.
-- Katalog startowy obejmuje 19 ćwiczeń z jawną konwencją obciążenia; użytkownik może dodać prywatne ćwiczenia. Dalsze rozszerzenia katalogu dodajemy migracjami.
+- Bazowy katalog obejmuje 81 ćwiczeń z jawną konwencją obciążenia; użytkownik może dodać wspólne ćwiczenia. Produkcja ma obecnie 85 wpisów. Techniczne rozszerzenia katalogu dodajemy migracjami.
 - Ostateczne reguły sugestii ciężarów i definicje rekordów — przy postępach.
 - Konfiguracja odzyskiwania konta, harmonogram kopii i procedura odtworzenia — przed wydaniem.
 - Współdzielenie postępów i wspólna edycja — po MVP, przez osobny model dostępu i migracje RLS.

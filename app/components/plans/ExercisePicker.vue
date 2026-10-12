@@ -92,7 +92,7 @@ function created(exercise: CatalogExercise) {
         v-if="!pending && !error && !items.length"
         class="text-sm text-secondary"
       >
-        Nie znaleziono ćwiczenia. Możesz dodać własne.
+        Nie znaleziono ćwiczenia. Możesz dodać je do wspólnego katalogu.
       </p>
       <UiBaseButton
         v-if="hasMore"
@@ -107,7 +107,7 @@ function created(exercise: CatalogExercise) {
         class="min-h-12 text-sm font-semibold text-accent"
         @click="creating = true"
       >
-        + Dodaj własne ćwiczenie
+        + Dodaj ćwiczenie
       </button>
     </template>
   </section>

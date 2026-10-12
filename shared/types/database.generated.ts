@@ -26,6 +26,20 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"deleted_workout_sessions": {
+                  Row: {
+                    "session_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "session_id": string,"user_id": string
+                  }
+                  Update: {
+                    "session_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+
+                  ]
                 },"exercises": {
                   Row: {
                     "archived_at": string | null,"created_at": string,"equipment": string,"id": string,"load_mode": string,"muscle_group": string,"name": string,"owner_id": string | null,"updated_at": string,"weight_convention": string,"weight_increment_kg": number
@@ -245,6 +259,9 @@ isOneToOne: false
 { Args: { "p_id": string,"p_operation_id": string,"p_plan": Json }; Returns: {
               "plan_id": string,"revision": number
             }[]
+                           },
+"delete_workout":
+{ Args: { "p_base_revision": number,"p_id": string }; Returns: undefined
                            },
 "exercise_progress":
 { Args: { "p_before"?: string,"p_equipment": string,"p_exercise_id": string,"p_load_mode": string,"p_weight_convention": string }; Returns: Json
