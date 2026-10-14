@@ -44,6 +44,14 @@ export function buildAiPrompt(request: AiRequest) {
     'Konwencja total to ciężar łączny, per_hand na jedną rękę, assistance asysta (mniej oznacza mniejszą pomoc), bodyweight dodatkowe kg przy masie ciała. Nie mieszaj tych konwencji. Nie wymyślaj brakujących wyników.',
     'weekday: null lub 1–7 od poniedziałku. setType: working lub warmup. Limit planu: 7 jednostek, 20 ćwiczeń na jednostkę, 20 serii na ćwiczenie. Nazwy do 100 znaków, notatki do 2000. Cały JSON do 256 KiB UTF-8.',
     'Prywatne notatki i opis planu zostały pominięte. Historia obejmuje tylko wskazaną liczbę ostatnich zakończonych sesji i wykonane serie. Nie jest pełną historią ani diagnozą stanu zdrowia.',
+    ...(request.action === 'create_plan'
+      ? [
+          'Ułóż plan zgodny z ankietą lub życzeniami użytkownika: cel, staż, przerwa, dostępne dni, sprzęt, czas całej sesji i regeneracja. Liczba jednostek ma odpowiadać liczbie treningów w tygodniu. Dla elastycznych dni użyj weekday: null.',
+          'Dobierz kolejność ćwiczeń, serie, powtórzenia, przerwy, rozgrzewkę i prostą progresję. Uwzględnij czas rozgrzewki oraz przerw w podanym czasie sesji. W opisie planu wyjaśnij dobór, okres obowiązywania, zapas powtórzeń i warunki zwiększania obciążenia. Nie zalecaj prób maksymalnych osobie początkującej lub wracającej po przerwie.',
+          'Nie wymyślaj ciężarów startowych przy braku wyników: targetWeightKg: null, z instrukcją doboru w notatkach. Wybieraj tylko dostępny sprzęt i ćwiczenia z katalogu. Jeżeli nie da się spełnić preferencji, opisz odstępstwo w opisie planu, bez wymyślania exerciseId.',
+          'Respektuj wykluczone ruchy i podane ograniczenia. Nie diagnozuj, nie obiecuj rehabilitacji ani bezpieczeństwa na podstawie ankiety. Przy niejasnych ograniczeniach wskaż potrzebę indywidualnego doboru z lekarzem lub fizjoterapeutą; nie traktuj braku danych jako potwierdzenia braku przeciwwskazań.',
+        ]
+      : []),
     `Życzenia użytkownika: ${JSON.stringify(request.context.instructions)}`,
     `Dozwolony katalog: ${JSON.stringify(request.context.catalog)}`,
     `Plan: ${JSON.stringify(plan)}`,

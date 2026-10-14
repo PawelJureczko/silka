@@ -129,6 +129,12 @@ Przegląd interfejsu dotyczył wyłącznie dodanej funkcji, według kierunku `DE
 
 ## Ręczna konsultacja AI
 
+Nowy plan bez historii: **Plany → Nowy plan → Wypełnij ankietę**. Uzupełnij cel, doświadczenie, czas, dni, sprzęt, ograniczenia i preferencje. Po „Przygotuj prompt z ankiety” obejrzyj tekst, skopiuj go do wybranego AI i wklej otrzymany JSON do tej samej konsultacji. Sprawdź podgląd i dopiero wtedy potwierdź zapis. Plan nie aktywuje się automatycznie. Ścieżka z ankietą zawsze pomija historię; „Ułóż na bazie historii” zachowuje dotychczasowy wybór zakresu. Pusty edytor jest dostępny przez „Ułóż plan samodzielnie”.
+
+Odpowiedzi ankiety, również informacje o ograniczeniach, zapisują się na prywatnym koncie po przygotowaniu promptu i trafiają do jego treści. Przed tym krokiem istnieją tylko w pamięci widoku, więc odświeżenie je usuwa. Nie podawaj szczegółowej dokumentacji medycznej; ankieta nie jest oceną zdolności do ćwiczeń. UI i generator korzystają z istniejącego JSON v1 oraz limitu instrukcji 2000 znaków, bez migracji i nowych usług. Ankietę publikuje się z buildem aplikacji.
+
+Weryfikacja ankiety z 14.10.2026: lint, typecheck, testy jednostkowe 34/34, integracja AI 8/8 i build przeszły. Lokalnie sprawdzono formularz, walidację, rzeczywiste kopiowanie/wklejenie promptu, import, anulowanie i zatwierdzenie, błąd API z ponowieniem oraz szerokości 320–1280 px. Szczegóły i raport PASS antislop: `AI_INTAKE_REVIEW.md`. To nie zastępuje testu fizycznego iPhone’a.
+
 W Planach wybierz „Konsultacja AI”; w edytorze zapisanego planu dostępne jest „Skonsultuj plan z AI”. Wybierz nowy plan, zamianę planu, analizę historii albo progresję ciężaru oraz zakres 0/10/20 zakończonych treningów. Przygotowany prompt można obejrzeć i skopiować. Samodzielnie wklej go do wybranego LLM; aplikacja nie korzysta z API LLM.
 
 Odpowiedź wklej jako sam JSON v1. „Sprawdź odpowiedź” waliduje kontrakt i pokazuje różnice. Przy progresji wskaż serię dla każdej wybranej sugestii i wyświetl zmiany ciężarów. Dopiero zatwierdzenie zapisuje dane. Nowy plan nie staje się automatycznie aktywny, zamiana obejmuje również opis i notatki, a analiza nie zmienia planu ani historii.
