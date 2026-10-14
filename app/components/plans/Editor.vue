@@ -2,7 +2,7 @@
 import type { PlanInput } from '#shared/schemas/plans'
 import type { CatalogExercise } from '~/services/plans'
 import { fetchPlan, savePlan, buildPlanExport } from '~/services/plans'
-import { copyPlanExport, downloadPlanExport, serializePlanExport } from '~/services/plan-transfer'
+import { downloadPlanExport, serializePlanExport } from '~/services/plan-transfer'
 import { newPlan } from '~/domain/plans'
 
 const props = defineProps<{
@@ -92,8 +92,9 @@ function prepareExport() {
     error.value = cause instanceof Error ? cause.message : 'Uzupełnij i zapisz plan przed eksportem.'
   }
 }
+const { notice: copyNotice, copyWithNotice } = useCopyNotice()
 async function copyExport() {
-  exportMessage.value = await copyPlanExport(exportText.value) ? 'Skopiowano. Możesz przekazać kopię drugiej osobie.' : 'Schowek jest niedostępny. Pobierz plik lub skopiuj tekst ręcznie.'
+  exportMessage.value = await copyWithNotice(exportText.value) ? 'Skopiowano. Możesz przekazać kopię drugiej osobie.' : 'Schowek jest niedostępny. Pobierz plik lub skopiuj tekst ręcznie.'
 }
 function preventLeave(event: BeforeUnloadEvent) {
   if (dirty.value && user.value) {
@@ -216,8 +217,12 @@ watch(() => user.value?.id, () => {
     <UiDialog
       v-if="exportText"
       title="Przekaż kopię planu"
-      @close="exportText = ''"
+      @close="exportText = ''; copyNotice = null"
     >
+      <UiSnackbar
+        :notice="copyNotice"
+        @close="copyNotice = null"
+      />
       <p class="mb-4 text-sm leading-relaxed text-secondary">
         Eksport zawiera plan, notatki i opisy użytych ćwiczeń. Nie zawiera konta ani historii treningów. Odbiorca utworzy własną kopię.
       </p><textarea

@@ -37,6 +37,7 @@ ENERGY 2 / RHYTHM 2 / MOTION 1. Energia wynika z typografii i wyniku, rytm z ró
 | Pola ankiety w jednej kolumnie, krótkie pary od 600 px | Na telefonie etykiety mają pełną szerokość, a na tablecie sprzęt i krótkie odpowiedzi można czytać obok siebie. |
 | Instalacja i aktualizacje w liniowej sekcji profilu | Ustawienia urządzenia mają jedno miejsce; linie rozwijają rytm dziennika bez dodatkowych kart i ozdobnych ikon. |
 | Krótki komunikat braku sieci przed treścią | Stan połączenia pozostaje widoczny bez zasłaniania pól treningu ani przypiętego timera. |
+| Snackbar po kopiowaniu, nad dolną nawigacją | Natychmiast potwierdza wynik; obramowanie i cień oddzielają go od przewijanej treści, a limonka pozostaje przy głównym CTA. |
 
 ## Reflow i obsługa
 

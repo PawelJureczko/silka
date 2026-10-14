@@ -317,7 +317,7 @@ Obsługiwane cele konsultacji:
 1. Użytkownik wybiera cel, plan i zakres historii.
 2. Aplikacja tworzy `requestId`; RPC zapisuje kontekst na koncie w prywatnej tabeli z RLS. Aplikacja generuje prompt z tego kontekstu.
 3. Prompt zawiera potrzebne dane, katalog dozwolonych ćwiczeń, jednostki, kontrakt JSON oraz instrukcję zwrócenia samego JSON.
-4. Użytkownik kopiuje prompt i wkleja go do wybranego LLM. Przy braku dostępu do schowka aplikacja udostępnia tekst do ręcznego skopiowania.
+4. Użytkownik kopiuje prompt i wkleja go do wybranego LLM. Udane kopiowanie promptu lub JSON eksportu potwierdza snackbar „Skopiowano”, widoczny przez 5 sekund z możliwością zamknięcia. Przy braku dostępu do schowka aplikacja pokazuje błąd i udostępnia tekst do ręcznego skopiowania.
 5. Użytkownik wkleja odpowiedź do Siłki.
 6. Aplikacja parsuje JSON, waliduje schemat i sprawdza powiązania z aktualnym kontem i konsultacją.
 7. Aplikacja pokazuje propozycję oraz różnice względem aktualnych danych.

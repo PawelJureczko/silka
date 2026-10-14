@@ -3,7 +3,6 @@ import type { PlanInput } from '#shared/schemas/plans'
 import { fetchAi, applyAi } from '~/services/ai'
 import { fetchPlan } from '~/services/plans'
 import { buildAiPrompt, parseAiResponse, progressionPlan, planChanges } from '~/domain/ai'
-import { copyPlanExport } from '~/services/plan-transfer'
 
 export function useAiConsultation(id: string) {
   const client = usePlanClient()
@@ -18,6 +17,7 @@ export function useAiConsultation(id: string) {
   const error = ref('')
   const message = ref('')
   const confirm = ref(false)
+  const { notice: copyNotice, copyWithNotice } = useCopyNotice()
   const prompt = computed(() => request.value ? buildAiPrompt(request.value) : '')
   const targets = computed(() => request.value?.context.plan?.workouts.flatMap((workout, wi) => workout.exercises.flatMap((exercise, ei) => exercise.sets.map((series, si) => ({
     value: `${wi}:${ei}:${si}`, exerciseId: exercise.exerciseId, workoutIndex: wi, exerciseIndex: ei, setIndex: si,
@@ -91,7 +91,7 @@ export function useAiConsultation(id: string) {
     })
   }
   async function copy() {
-    message.value = await copyPlanExport(prompt.value) ? 'Prompt skopiowany. Wklej go do wybranego AI.' : 'Schowek jest niedostępny. Zaznacz i skopiuj tekst promptu ręcznie.'
+    message.value = await copyWithNotice(prompt.value) ? 'Prompt skopiowany. Wklej go do wybranego AI.' : 'Schowek jest niedostępny. Zaznacz i skopiuj tekst promptu ręcznie.'
   }
   watch(() => user.value?.id, () => {
     request.value = null
@@ -101,5 +101,5 @@ export function useAiConsultation(id: string) {
   onMounted(() => {
     void load()
   })
-  return { request, source, response, selections, proposal, busy, loading, error, message, confirm, prompt, targets, changes, load, validate, cancelPreview, previewProgression, accept, copy }
+  return { request, source, response, selections, proposal, busy, loading, error, message, confirm, prompt, targets, changes, load, validate, cancelPreview, previewProgression, accept, copy, copyNotice }
 }

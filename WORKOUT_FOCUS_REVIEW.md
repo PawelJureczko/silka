@@ -85,3 +85,24 @@ Zakres: nowe kontrolki i zmieniony przepływ. Niezmienione elementy systemu wizu
 Dowody: `/tmp/silka-focus-seria.png`, `/tmp/silka-focus-odpoczynek.png`, `/tmp/silka-focus-desktop.png`, `/tmp/silka-update-popup.png`.
 
 Ograniczenia: nie weryfikowano fizycznego iPhone’a ani sygnału na blokadzie. Nie dodano Web Push, uprawnień powiadomień ani usług serwerowych. Stare instalacje muszą najpierw uruchomić wersję zawierającą popup, korzystając z dotychczasowej obsługi aktualizacji w Profilu.
+
+## Uzupełnienie: potwierdzenie kopiowania, 14.10.2026
+
+Zakres: snackbar „Skopiowano” dla promptu AI i JSON eksportu. Powyższy pełny Delivery Gate pozostaje bazą dla niezmienionej strony. Ponownie sprawdzono nowe elementy według tych samych reguł, w trybie during; kierunek i dials 2/2/1 pochodzą z `DESIGN.md`.
+
+- R-03 PASS: przy rzeczywistym viewport 390 × 844 nie ma poziomego overflow; zrzuty obu miejsc pokazują snackbar nad nawigacją, także w natywnym dialogu.
+- R-17 PASS: potwierdzenie powstaje dopiero po zakończeniu zapisu schowka; błąd usługi daje osobny komunikat, bez fałszywego sukcesu.
+- R-25 PASS: tekst primary #FAFAFA na surface #18181B zachowuje istniejącą parę kontrastu; nie dodano kolorów.
+- R-26 PASS: kliknięto oba przyciski kopiowania, ponowne kopiowanie, zamknięcie snackbara i ponowne otwarcie eksportu bez starego potwierdzenia.
+- R-27 PASS: udane kopiowanie, automatyczne zniknięcie i ręczne zamknięcie sprawdzono w przeglądarce; ścieżkę błędu schowka sprawdzono w kodzie, pozostawiono instrukcję kopiowania ręcznego.
+- R-32 PASS: region `role=status` z `aria-live=polite`, natywny przycisk zamknięcia zmierzony jako 44 × 44 px, istniejący focus; timer pauzuje przy focus/hover. Nie testowano czytnika ekranu.
+- R-33 PASS: komponent Vue i composable edytowane w źródłach; lint i typecheck przechodzą.
+- R-35 PASS: lokalny dev, build statyczny i opisane kliknięcia; brak błędów/warningów konsoli podczas sprawdzania promptu.
+- R-37 PASS: pozycja, kolor i cień mają powód dopisany w `DESIGN.md`.
+- R-12 PASS: cień służy odróżnieniu tymczasowego komunikatu od treści pod spodem, nie dodano cieni do innych kontrolek.
+- R-19 PASS: bez animacji i nowej zależności; timer zerowany przy kolejnym kopiowaniu, sprzątany przy odmontowaniu.
+- Liveliness PASS: dials 2/2/1, limonka pozostaje przy kopiowaniu; snackbar ma neutralną powierzchnię, a istniejąca numeracja i odstępy zachowują motyw dziennika.
+- C-1–C-5 PASS: komunikat wynika z wyniku konkretnej akcji, zamknięcie działa, bez dodatkowych sekcji ani fikcyjnych danych; błędy obsłużone w usłudze, focus i safe area zachowane.
+- Pozostałe Hard Gate, Purpose Gate i Quality Locks PASS: nie zmieniono motywu, nawigacji, typografii ani treści ekranów; brak nowych assetów, ikon, gradientów, szkła, glow, kart, statystyk, opinii lub marketingowych obietnic. Konkretne uzasadnienia pozostają w powyższym pełnym raporcie i `DESIGN.md`.
+
+Dowody: `/tmp/silka-snackbar-prompt.png`, `/tmp/silka-snackbar-export.png`. Weryfikacja dotyczy lokalnej przeglądarki, nie fizycznego iPhone’a. Zmiana nie wymaga migracji bazy.

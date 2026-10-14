@@ -5,7 +5,7 @@ import { aiActionLabels } from '~/domain/ai'
 const id = z.uuid().safeParse(useRoute().params.id)
 if (!id.success) throw createError({ statusCode: 404, statusMessage: 'Nie znaleziono konsultacji' })
 useHead({ title: 'Odpowiedź AI · Siłka' })
-const { request, source, response, selections, proposal, busy, loading, error, message, confirm, prompt, targets, changes, load, validate, cancelPreview, previewProgression, accept, copy } = useAiConsultation(id.data)
+const { request, source, response, selections, proposal, busy, loading, error, message, confirm, prompt, targets, changes, load, validate, cancelPreview, previewProgression, accept, copy, copyNotice } = useAiConsultation(id.data)
 const catalogName = (value: string | null) => (request.value?.context.catalog.find(item => item.id === value)?.name ?? value) || 'Brak'
 const resultAnalysis = computed(() => request.value?.response?.action === 'analyze_history' ? request.value.response.payload : response.value?.action === 'analyze_history' ? response.value.payload : null)
 onBeforeRouteLeave(() => !source.value || request.value?.applied || window.confirm('Odpowiedź nie została zatwierdzona. Opuścić podgląd? Prompt pozostanie na koncie, wklejony tekst zostanie odrzucony.'))
@@ -13,6 +13,10 @@ onBeforeRouteLeave(() => !source.value || request.value?.applied || window.confi
 
 <template>
   <div>
+    <UiSnackbar
+      :notice="copyNotice"
+      @close="copyNotice = null"
+    />
     <NuxtLink
       to="/plans/ai"
       class="mb-4 inline-flex min-h-11 items-center text-sm text-secondary"
