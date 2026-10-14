@@ -38,6 +38,9 @@ ENERGY 2 / RHYTHM 2 / MOTION 1. Energia wynika z typografii i wyniku, rytm z ró
 | Instalacja i aktualizacje w liniowej sekcji profilu | Ustawienia urządzenia mają jedno miejsce; linie rozwijają rytm dziennika bez dodatkowych kart i ozdobnych ikon. |
 | Krótki komunikat braku sieci przed treścią | Stan połączenia pozostaje widoczny bez zasłaniania pól treningu ani przypiętego timera. |
 | Snackbar po kopiowaniu, nad dolną nawigacją | Natychmiast potwierdza wynik; obramowanie i cień oddzielają go od przewijanej treści, a limonka pozostaje przy głównym CTA. |
+| Katalog: przełącznik A–Z / partie, spis z liniami | Dwie kolejności odpowiadają szukaniu konkretnej nazwy albo ćwiczeń danej partii, bez powielania bazy i kart. |
+| Nagłówki partii z liczbą ćwiczeń i natywny filtr | Ułatwiają przejście do barków lub klatki; liczby wynikają z rzeczywistych wyników wyszukiwania. |
+| Pełny katalog przewija się wraz ze stroną | Usuwa małe okno zagnieżdżonego przewijania; ograniczony obszar zostaje tylko w wyborze ćwiczenia w edytorze. |
 
 ## Reflow i obsługa
 

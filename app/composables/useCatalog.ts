@@ -1,30 +1,30 @@
-import { catalogPageSize, fetchCatalog } from '~/services/plans'
+import { fetchCompleteCatalog } from '~/services/plans'
 import type { CatalogExercise } from '~/services/plans'
+import { filterCatalog, groupCatalog } from '~/domain/catalog'
 
 export function useCatalog() {
   const client = usePlanClient()
-  const items = ref<CatalogExercise[]>([])
+  const catalog = ref<CatalogExercise[]>([])
   const search = ref('')
   const pending = ref(false)
   const error = ref('')
-  const hasMore = ref(false)
-  let page = 0
   let request = 0
+  const items = computed(() => filterCatalog(catalog.value, search.value))
+  const groups = computed(() => groupCatalog(items.value))
+  const muscleGroups = computed(() => groupCatalog(catalog.value).map(group => group.name))
+  const total = computed(() => catalog.value.length)
 
-  async function load(more = false) {
+  async function load() {
     const current = ++request
-    if (!more) page = 0
     pending.value = true
     error.value = ''
     try {
-      const rows = await fetchCatalog(client, search.value, more ? page + 1 : 0)
+      const rows = await fetchCompleteCatalog(client)
       if (current !== request) return
-      if (more) page++
-      items.value = more ? [...items.value, ...rows] : rows
-      hasMore.value = rows.length === catalogPageSize
+      catalog.value = rows
     }
     catch (cause) { if (current === request) error.value = cause instanceof Error ? cause.message : 'Nie udało się pobrać ćwiczeń.' }
     finally { if (current === request) pending.value = false }
   }
-  return { items, search, pending, error, hasMore, load }
+  return { items, groups, muscleGroups, total, search, pending, error, load }
 }

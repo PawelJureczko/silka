@@ -1,33 +1,36 @@
 <script setup lang="ts">
 import type { CatalogExercise } from '~/services/plans'
 
-const emit = defineEmits<{
-  select: [
-        exercise: CatalogExercise,
-  ]
-  close: [
-  ]
-}>()
-const { items, search, pending, error, hasMore, load } = useCatalog()
+const props = withDefaults(defineProps<{ browse?: boolean }>(), { browse: false })
+const emit = defineEmits<{ select: [exercise: CatalogExercise], close: [] }>()
+const { items, groups, muscleGroups, total, search, pending, error, load } = useCatalog()
 const creating = ref(false)
-const conventions: Record<string, string> = { total: 'kg łącznie', per_hand: 'kg na rękę', bodyweight: 'masa ciała', assistance: 'kg asysty' }
+const view = ref<'alphabetical' | 'muscles'>('alphabetical')
+const selectedGroup = ref('')
+const visibleGroups = computed(() => groups.value.filter(group => !selectedGroup.value || group.name === selectedGroup.value))
+const resultCount = computed(() => view.value === 'muscles' ? visibleGroups.value.reduce((count, group) => count + group.exercises.length, 0) : items.value.length)
+const resultsId = useId()
 onMounted(() => load())
 function created(exercise: CatalogExercise) {
   creating.value = false
+  search.value = ''
+  selectedGroup.value = ''
   void load()
-  emit('select', exercise)
+  if (!props.browse) emit('select', exercise)
 }
 </script>
 
 <template>
   <section
-    class="panel space-y-4 p-4 sm:p-6"
-    aria-label="Wybierz ćwiczenie"
+    :class="browse ? 'space-y-5' : 'panel space-y-4 p-4 sm:p-6'"
+    :aria-label="browse ? 'Przeglądaj ćwiczenia' : 'Wybierz ćwiczenie'"
   >
     <div class="flex items-center justify-between gap-3">
       <h2 class="text-lg font-semibold">
-        Wybierz ćwiczenie
-      </h2><button
+        {{ browse ? 'Znajdź ćwiczenie' : 'Wybierz ćwiczenie' }}
+      </h2>
+      <button
+        v-if="!browse"
         type="button"
         class="button-secondary min-w-12 px-3"
         aria-label="Zamknij wybór ćwiczenia"
@@ -42,66 +45,125 @@ function created(exercise: CatalogExercise) {
       @cancel="creating = false"
     />
     <template v-else>
-      <form
-        class="flex gap-2"
-        @submit.prevent="load()"
-      >
+      <label class="block text-sm">Szukaj w katalogu
         <input
           v-model="search"
-          class="field min-w-0"
+          class="field mt-2"
           type="search"
-          aria-label="Szukaj ćwiczenia"
-          placeholder="Szukaj ćwiczenia…"
-        /><UiBaseButton
-          type="submit"
-          variant="secondary"
-          :busy="pending"
-        >
-          Szukaj
-        </UiBaseButton>
-      </form>
-      <p
-        v-if="error"
-        role="alert"
-        class="text-sm text-red-300"
+          placeholder="Nazwa, sprzęt lub partia mięśniowa…"
+        />
+      </label>
+      <div
+        class="grid grid-cols-2 gap-2"
+        role="group"
+        aria-label="Układ katalogu"
       >
-        {{ error }}
-      </p>
-      <p
-        v-if="pending && !items.length"
-        role="status"
-        class="text-secondary"
-      >
-        Pobieranie ćwiczeń…
-      </p>
-      <div class="max-h-80 space-y-2 overflow-y-auto overscroll-contain">
         <button
-          v-for="exercise in items"
-          :key="exercise.id"
           type="button"
-          class="flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl bg-interactive p-4 text-left hover:bg-zinc-700"
-          @click="emit('select', exercise)"
+          class="min-h-12 rounded-md border px-3 py-3 text-sm font-semibold"
+          :class="view === 'alphabetical' ? 'border-accent bg-accent text-background' : 'border-secondary/70 bg-interactive text-primary'"
+          :aria-pressed="view === 'alphabetical'"
+          :aria-controls="resultsId"
+          @click="view = 'alphabetical'"
         >
-          <span><span class="block font-medium">{{ exercise.name }}</span><span class="mt-1 block text-xs text-secondary">{{ exercise.equipment }} · {{ exercise.muscle_group }} · {{ conventions[exercise.weight_convention] }}</span></span><span
-            class="text-xl text-accent"
-            aria-hidden="true"
-          >+</span>
+          Wszystkie A–Z
+        </button>
+        <button
+          type="button"
+          class="min-h-12 rounded-md border px-3 py-3 text-sm font-semibold"
+          :class="view === 'muscles' ? 'border-accent bg-accent text-background' : 'border-secondary/70 bg-interactive text-primary'"
+          :aria-pressed="view === 'muscles'"
+          :aria-controls="resultsId"
+          @click="view = 'muscles'"
+        >
+          Partie mięśniowe
         </button>
       </div>
+      <label
+        v-if="view === 'muscles'"
+        class="block text-sm"
+      >Partia mięśniowa
+        <select
+          v-model="selectedGroup"
+          class="field mt-2"
+        >
+          <option value="">Wszystkie partie</option>
+          <option
+            v-for="name in muscleGroups"
+            :key="name"
+            :value="name"
+          >{{ name }}</option>
+        </select>
+      </label>
       <p
-        v-if="!pending && !error && !items.length"
+        v-if="pending"
+        role="status"
         class="text-sm text-secondary"
       >
-        Nie znaleziono ćwiczenia. Możesz dodać je do wspólnego katalogu.
+        Pobieranie pełnego katalogu…
       </p>
-      <UiBaseButton
-        v-if="hasMore"
-        variant="secondary"
-        :busy="pending"
-        @click="load(true)"
+      <div
+        v-if="error"
+        role="alert"
+        class="space-y-3"
       >
-        Pokaż więcej
-      </UiBaseButton>
+        <p class="text-sm text-red-300">
+          {{ error }}
+        </p>
+        <UiBaseButton
+          variant="secondary"
+          :busy="pending"
+          @click="load()"
+        >
+          Spróbuj ponownie
+        </UiBaseButton>
+      </div>
+      <template v-if="!pending && !error">
+        <p
+          role="status"
+          class="text-sm text-secondary"
+        >
+          {{ search.trim() || (view === 'muscles' && selectedGroup) ? `Wyniki: ${resultCount} z ${total}` : `W katalogu: ${total}` }}
+        </p>
+        <div
+          :id="resultsId"
+          :class="browse ? '' : 'max-h-96 overflow-y-auto overscroll-contain'"
+        >
+          <PlansExerciseList
+            v-if="view === 'alphabetical'"
+            :exercises="items"
+            :selectable="!browse"
+            @select="emit('select', $event)"
+          />
+          <div
+            v-else
+            class="space-y-8"
+          >
+            <section
+              v-for="group in visibleGroups"
+              :key="group.name"
+            >
+              <h3
+                class="flex items-baseline justify-between gap-3 border-b border-secondary/70 py-3 text-xl font-bold"
+                :aria-label="`${group.name}. Liczba ćwiczeń: ${group.exercises.length}`"
+              >
+                {{ group.name }}<span class="text-sm font-normal tabular-nums text-secondary">{{ group.exercises.length }}</span>
+              </h3>
+              <PlansExerciseList
+                :exercises="group.exercises"
+                :selectable="!browse"
+                @select="emit('select', $event)"
+              />
+            </section>
+          </div>
+          <p
+            v-if="!resultCount"
+            class="py-4 text-sm text-secondary"
+          >
+            Nie znaleziono ćwiczeń. Zmień wyszukiwanie lub dodaj ćwiczenie do wspólnego katalogu.
+          </p>
+        </div>
+      </template>
       <button
         type="button"
         class="min-h-12 text-sm font-semibold text-accent"

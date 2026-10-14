@@ -1,6 +1,5 @@
 <script setup lang="ts">
 useHead({ title: 'Katalog ćwiczeń — Siłka' })
-const message = ref('')
 </script>
 
 <template>
@@ -14,16 +13,6 @@ const message = ref('')
       title="Katalog ćwiczeń"
       description="Wspólna baza ćwiczeń dla wszystkich użytkowników Siłki. Każde z jasnym sposobem liczenia ciężaru."
     />
-    <p
-      v-if="message"
-      role="status"
-      class="mb-4 text-sm text-accent"
-    >
-      {{ message }}
-    </p>
-    <PlansExercisePicker
-      @select="message = `${$event.name} jest dostępne w katalogu. Dodasz je w edytorze planu.`"
-      @close="navigateTo('/plans')"
-    />
+    <PlansExercisePicker browse />
   </div>
 </template>

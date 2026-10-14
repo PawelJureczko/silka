@@ -180,6 +180,8 @@ W obecnym schemacie mamy **12 tabel `public` z RLS**. Bazowy katalog ma **81 ćw
 
 Nie wyłączaj RLS, aby „naprawić” komunikat permission denied. Sprawdź sesję, uprawnienia wywoływanej funkcji i zgodność migracji.
 
+**Aktualizacja 14.10.2026:** ostatnia migracja to `20261014000100_more_exercise_variants.sql`, zastosowana lokalnie i w produkcji. Dodano 31 wariantów bez zmiany dotychczasowych ID. Bazowy katalog ma teraz 112 wpisów, a produkcja 116 aktywnych wspólnych ćwiczeń. Katalog aplikacji i wybór w edytorze obsługują widoki „Wszystkie A–Z” / „Partie mięśniowe”, filtr partii oraz wyszukiwanie. Powyższe liczby 81/85 opisują stan sprzed tego rozszerzenia.
+
 <a id="katalog"></a>
 ## 5. Katalog ćwiczeń
 

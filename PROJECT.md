@@ -16,6 +16,10 @@ Migracje `20261011000100`–`20261012000300` są zastosowane lokalnie i w chmurz
 
 Katalog obejmuje warianty na sztandze, z hantlami, na maszynach, wyciągach oraz z masą ciała i asystą. Ciężar to wartość łączna, na rękę lub asysta zgodnie z etykietą ćwiczenia. Dla rozpiętek na bramie zapisujemy ciężar jednego stosu na rękę; dla podciągania i pompek na poręczach z dodatkowym ciężarem tylko dodane obciążenie, bez masy ciała. Kroki ciężaru są domyślnymi wartościami do sugestii, nie opisem każdej maszyny. Ćwiczenia mierzone czasem lub dystansem wymagają osobnego rozszerzenia modelu serii i nie należą do tego katalogu.
 
+Aktualizacja 14.10.2026: migracja `20261014000100_more_exercise_variants.sql`, zastosowana lokalnie i w chmurze, dodaje 31 wariantów. Produkcyjny katalog ma teraz 116 aktywnych wspólnych wpisów; bazowe migracje dostarczają 112. Nowe pozycje obejmują m.in. unoszenie hantli przed siebie, arnoldki i wyciskanie hantli nad głowę siedząc/stojąc. Istniejące ogólne wyciskanie hantli nad głowę zachowuje swój identyfikator i historię. Migracja pomija już istniejące aktywne nazwy i nie edytuje wcześniejszych rekordów.
+
+Katalog i wybór ćwiczenia w edytorze mają dwa widoki: „Wszystkie A–Z” oraz „Partie mięśniowe”. Grupy mają nagłówki, liczbę pasujących ćwiczeń i opcjonalny filtr jednej partii. Oba widoki wyszukują po nazwie, sprzęcie i partii, również bez polskich znaków. Cały niewielki katalog jest pobierany stronicowanymi zapytaniami po 50 wpisów, a następnie sortowany według polskiego alfabetu i filtrowany lokalnie. Nie pokazujemy częściowej listy jako kompletnej; błąd dowolnej strony udostępnia ponowienie. Katalog przewija się wraz ze stroną; wybór w edytorze ma własny ograniczony obszar i przyciski dodawania. Liczby wyżej są stanem z daty aktualizacji, a nie stałym limitem.
+
 Stan sprawdzony 11 października 2026: lokalny katalog był pusty i nie był checkoutem Git. GitHub zwracał publiczne repozytorium bez gałęzi domyślnej, o rozmiarze 0 KB. Przy przygotowaniu dokumentacji nie inicjalizowano aplikacji ani usług.
 
 ## Cel produktu

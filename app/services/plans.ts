@@ -18,9 +18,18 @@ export async function fetchCatalog(client: Client, search = '', page = 0) {
   const escaped = search.trim().replace(/[\\%_]/g, '\\$&')
   let query = client.from('exercises').select('*').is('archived_at', null).order('name').order('id')
   if (escaped) query = query.ilike('name', `%${escaped}%`)
-  const { data, error } = await query.range(page * catalogPageSize, (page + 1) * catalogPageSize - 1)
+  const { data, error } = await query.range(page * catalogPageSize, (page + 1) * catalogPageSize - 1).abortSignal(AbortSignal.timeout(12000))
   if (error) throw new Error('Nie udało się pobrać katalogu ćwiczeń.')
   return data
+}
+
+export async function fetchCompleteCatalog(client: Client) {
+  const items: CatalogExercise[] = []
+  for (let page = 0; ; page++) {
+    const rows = await fetchCatalog(client, '', page)
+    items.push(...rows)
+    if (rows.length < catalogPageSize) return items
+  }
 }
 
 export async function fetchExercisesByIds(client: Client, ids: string[]) {
