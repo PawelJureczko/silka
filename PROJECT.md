@@ -10,7 +10,7 @@ Etapy 0–2 są zapisane na GitHub: dokumentacja, fundament, katalog ćwiczeń, 
 
 Uruchomienie i weryfikacja: `README.md`. Używamy npm, Node 22.23.1, Nuxt 4.6.1 i Vue 3.5.43, z dokładnymi wersjami zależności w lockfile. Nie dodano Pinia, biblioteki ikon ani animacji.
 
-Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 12 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Projekt Vercel `silka` działa na Hobby pod https://silka-jureczko.vercel.app. Gałąź produkcyjna to `feat/progress`; push uruchamia wdrożenie. `main` nadal zawiera dokumentację. Potwierdzono logowanie rzeczywistego użytkownika, odczyt profilu, zapis plików PWA oraz publiczne zasoby i routing HTTPS. Izolacja kont była testowana lokalnie; test dwóch rzeczywistych kont pozostaje do wydania.
+Projekt Supabase `silka` działa na Free w eu-west-1. RLS chroni 12 tabel. Publiczna rejestracja jest wyłączona. Dwa konta i ich profile istnieją w chmurze; testy dwóch osób używają oddzielnego lokalnego Supabase i fikcyjnych danych. Projekt Vercel `silka` działa na Hobby pod https://silka-jureczko.vercel.app. Gałąź produkcyjna to `main`; push uruchamia wdrożenie. Potwierdzono logowanie rzeczywistego użytkownika, odczyt profilu, zapis plików PWA oraz publiczne zasoby i routing HTTPS. Izolacja kont była testowana lokalnie; test dwóch rzeczywistych kont pozostaje do wydania.
 
 Migracje `20261011000100`–`20261012000300` są zastosowane lokalnie i w chmurze, z historią migracji. Bazowy katalog zawiera 81 ćwiczeń w 9 grupach mięśniowych. Migracja `20261012000200` udostępnia wszystkie ćwiczenia zalogowanym kontom i pozwala dodawać nowe wspólne wpisy. Produkcja zawiera po niej 85 rekordów, w tym 4 dawniej prywatne; lokalna baza ma własne dane. Edycja, archiwizacja i usuwanie katalogu są administracyjne. Nie scalamy automatycznie podobnych nazw ani nie zmieniamy identyfikatorów, relacji i historii. Migracja `20261011001100` dodaje 61 pozycji bez zmiany wcześniejszych identyfikatorów. Migracja `20261012000100` dodaje osobne „Uginanie nóg leżąc na maszynie” z obciążeniem liczonym łącznie i domyślnym krokiem 2,5 kg; wariant zachowuje własną historię względem ogólnego uginania nóg na maszynie. Prywatne plany użytkowników zapisujemy oddzielnie od migracji katalogu, przez transakcyjne RPC z RLS; nie umieszczamy ich w seedzie ani repozytorium. RPC planów, zapisu treningów, postępów, profilu i konsultacji działają jako `SECURITY INVOKER`, wymagają uwierzytelnienia i zachowują RLS. Usuwanie treningu jest ograniczonym wyjątkiem opisanym w etapie 3. Fikcyjne plany, ćwiczenia i treningi do testów nie były zapisywane w chmurze.
 
@@ -131,6 +131,8 @@ Lista własnych planów, edycja jednostek, ćwiczeń i serii, przypisanie aktywn
 
 Widok skupiony na zapisywaniu wykonania: ćwiczenia, serie, ciężary, powtórzenia, poprzedni wynik, sugestia i timer. Można dodać lub pominąć serię. Zakończenie pokazuje podsumowanie i stan zapisu; porzucenie wymaga świadomej decyzji.
 
+Aktywna sesja domyślnie otwiera pełnoekranowy tryb jednego ćwiczenia i jednej oczekującej serii. CTA „Seria zakończona” zabezpiecza wykonanie istniejącym lokalnym dziennikiem; następnie pojawia się odpoczynek, jeśli pozostała kolejna seria. Timer ma +30 s, pominięcie i po upływie czasu „Rozpocznij kolejną serię”. Można wybrać inne niewykonane ćwiczenie albo przejść do wszystkich serii, dodawania, korekty, sugestii i zakończenia. Ostatnia rozstrzygnięta seria pokazuje przejście do podsumowania, bez automatycznego zakończenia. Historia pozostaje w dotychczasowym widoku. Nie używamy przeglądarkowego Fullscreen API, więc interfejs działa także w zainstalowanej PWA i Safari.
+
 ### Postępy
 
 Historia sesji, szczegóły treningu, progresja konkretnego ćwiczenia, rekordy i regularność. Porównania obejmują zgodny sposób liczenia obciążenia i sprzęt. Ewentualne szacunki, np. szacowane 1RM, muszą być wyraźnie oznaczone.
@@ -246,6 +248,8 @@ exercises → workout_exercises
 - Testy dwóch kont sprawdzają odczyt, zapisy, podmienione identyfikatory rodziców, podmianę `user_id`, RPC i widoki. Brak sesji nie daje dostępu do prywatnych danych.
 
 ## Aktywny trening i PWA
+
+Nowa pobrana wersja pokazuje na ekranie Start popup „Dostępna aktualizacja”, z CTA „Aktualizuj” oraz „Na później”. Aplikacja sprawdza worker po uruchomieniu i przy powrocie z tła (z ograniczeniem do sprawdzenia raz na minutę). Nie przeładowuje się automatycznie; istniejąca blokada wszystkich lokalnych dzienników pozostaje obowiązkowa. Popup nie przerywa edytora ani aktywnego ekranu ćwiczenia. Profil zachowuje ręczne sprawdzanie. Powiadomień push nie dodano w tym etapie; sygnał po upływie odpoczynku jest informacją w otwartej aplikacji.
 
 Każda zmiana serii najpierw zabezpiecza lokalny szkic, następnie trafia do Supabase. UI rozróżnia zapis lokalny, oczekiwanie, zapis na koncie oraz błąd. Nie pokazujemy potwierdzenia synchronizacji przed sukcesem zapisu zdalnego.
 

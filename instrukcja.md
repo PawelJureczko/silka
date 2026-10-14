@@ -32,7 +32,7 @@ Stan opisany na **11 października 2026 r.** Dokument dotyczy naszego istniejąc
 | Korzystać z Siłki | [Otwieram aplikację](https://silka-jureczko.vercel.app) lub ikonę PWA na telefonie. |
 | Dodać osobę | Supabase → Authentication → Users → Add user → Create new user. [Instrukcja](#konta). |
 | Sprawdzić, czy kod się opublikował | Vercel → projekt `silka` → Deployments → status, commit i środowisko Production. |
-| Opublikować zmianę interfejsu | Sprawdzam kod, commituję wybrane pliki, pushuję na `feat/progress`, kontroluję wdrożenie. [Instrukcja](#publikacja). |
+| Opublikować zmianę interfejsu | Sprawdzam kod, commituję wybrane pliki, pushuję na `main`, kontroluję wdrożenie. [Instrukcja](#publikacja). |
 | Dodać wspólne ćwiczenia | Przygotowuję nową migrację SQL, testuję lokalnie, stosuję w chmurze. Sam push nie wystarcza. |
 | Sprawdzić dane | Supabase → Table Editor; SQL Editor do świadomych zapytań administracyjnych. |
 | Zmienić połączenie aplikacji z Supabase | Zmieniam dwie zmienne środowiskowe i wykonuję nowe wdrożenie Vercel. |
@@ -57,7 +57,7 @@ Stan opisany na **11 października 2026 r.** Dokument dotyczy naszego istniejąc
 | Identyfikator projektu Supabase | `dtuyllkefazftqphwfdc` |
 | Publiczny URL API Supabase | `https://dtuyllkefazftqphwfdc.supabase.co` |
 | Organizacja / region Supabase | `Siłka` / Europe, `eu-west-1` |
-| Gałąź produkcyjna Vercel | **`feat/progress`** |
+| Gałąź produkcyjna Vercel | **`main`** |
 
 Adres `project-bcug5.vercel.app` został zastąpiony docelowym adresem powyżej. Do instalowania PWA i udostępniania aplikacji używaj stałego adresu produkcyjnego, nie adresu pojedynczego wdrożenia.
 
@@ -242,7 +242,7 @@ npm run dev:local
 
 Jeśli `nvm use` zgłasza brak wersji, wykonaj `nvm install`, a potem ponownie `nvm use`. `npm ci` instaluje wersje z `package-lock.json`. Nie przechodź przypadkowo na Node 24 ani inny menedżer pakietów.
 
-`dev:setup` tworzy fikcyjne konta i lokalną konfigurację; nie nadpisuje istniejącego `.env.local`. Adresy i hasło kont testowych są w `README.md`. Nie są to konta produkcyjne. Na nowym komputerze najpierw sklonuj repozytorium i przejdź na gałąź z aplikacją `feat/progress`; samo `main` nie odpowiada obecnemu wdrożeniu.
+`dev:setup` tworzy fikcyjne konta i lokalną konfigurację; nie nadpisuje istniejącego `.env.local`. Adresy i hasło kont testowych są w `README.md`. Nie są to konta produkcyjne. Na nowym komputerze najpierw sklonuj repozytorium i przejdź na gałąź z aplikacją `main`.
 
 | Lokalna usługa | Adres |
 | --- | --- |
@@ -298,7 +298,7 @@ Zmiany samej dokumentacji nie wymagają uruchamiania aplikacji, Dockera ani test
 
 ### Jak obecnie działa publikacja
 
-Produkcję śledzi gałąź **`feat/progress`**. Push na tę gałąź uruchamia build Vercel, także wtedy, gdy commit zmienia tylko dokumentację. Nie zakładaj, że `main` jest produkcją. Inne gałęzie mogą tworzyć wdrożenia Preview. [Integracja Vercel z Git](https://vercel.com/docs/git).
+Produkcję śledzi gałąź **`main`**. Push na tę gałąź uruchamia build Vercel, także wtedy, gdy commit zmienia tylko dokumentację. Inne gałęzie mogą tworzyć wdrożenia Preview. [Integracja Vercel z Git](https://vercel.com/docs/git).
 
 Weryfikuj konkretny commit i oznaczenie **Production / Current**, a nie tylko zielony status dowolnego wdrożenia. Przy przygotowaniu dokumentu ostatnim zweryfikowanym wdrożeniem aplikacji był commit `9499dcc`; baza ma już również migrację 011. To punkt odniesienia, nie numer, którego trzeba trzymać się przy kolejnych wydaniach.
 
@@ -317,7 +317,7 @@ git status
 git diff
 git add sciezka/do/zmienionego/pliku
 git commit -m "Opis zmiany"
-git push origin feat/progress
+git push origin main
 ```
 
 5. W Vercel → Deployments otwórz wdrożenie tego commita.
@@ -325,7 +325,7 @@ git push origin feat/progress
 7. Otwórz stały adres produkcyjny. Sprawdź zmieniony ekran, logowanie i najważniejszy powiązany przepływ.
 8. Na PWA sprawdź aktualizację w Profilu, gdy żaden trening ani zapis nie oczekuje na synchronizację.
 
-Jeśli pracujesz na innej gałęzi, powyższy push nie przenosi automatycznie Twojej bieżącej pracy na `feat/progress`. Najpierw świadomie scal sprawdzone zmiany. Nie przełączaj produkcyjnej gałęzi tylko po to, żeby ominąć nieudany build.
+Jeśli pracujesz na innej gałęzi, powyższy push nie przenosi automatycznie Twojej bieżącej pracy na `main`. Najpierw świadomie scal sprawdzone zmiany. Nie przełączaj produkcyjnej gałęzi tylko po to, żeby ominąć nieudany build.
 
 ### Gdy zmiana zawiera migrację
 
@@ -392,7 +392,7 @@ Otwórz [projekt silka](https://vercel.com/jureczkopawel-2338s-projects/silka) �
 | Output Directory | `.output/public` |
 | Node.js Version | `22.x` |
 | Repozytorium Git | `PawelJureczko/silka` |
-| Production Branch | `feat/progress` |
+| Production Branch | `main` |
 
 Gałąź sprawdzisz w **Settings → Environments → Production → Branch Tracking**; powiązanie repozytorium w Settings → Git. Nazwy tych sekcji mogą ulec zmianie.
 
@@ -567,7 +567,7 @@ Instalacja została już potwierdzona przez użytkownika. Pozostałe zachowania 
 
 ### Aktualizowanie aplikacji
 
-Po publikacji nowej wersji wejdź w **Profil** i użyj obsługi sprawdzania / zastosowania aktualizacji. Najpierw zakończ albo zabezpiecz trening i poczekaj na synchronizację.
+Po publikacji i pobraniu nowej wersji na ekranie **Start** pojawi się popup „Dostępna aktualizacja”. Wybierz **Aktualizuj** albo **Na później**. Ręczne sprawdzenie pozostaje w **Profilu**. Najpierw zakończ albo zabezpiecz trening i poczekaj na synchronizację.
 
 Aplikacja blokuje zastosowanie aktualizacji, gdy istnieje aktywny trening, niewysłane zmiany albo konflikt; kontrola obejmuje lokalnie zapisane konta na tym urządzeniu. Jeśli wcześniej korzystano z innego konta, może być potrzebny powrót do niego i synchronizacja. Zamknij również inne otwarte karty Siłki, jeżeli przeszkadzają w przejęciu nowego service workera.
 
@@ -595,7 +595,7 @@ Timer wylicza czas z zapisanego momentu końca odpoczynku. Nie gwarantujemy alar
 
 | Objaw | Co sprawdzić i zrobić |
 | --- | --- |
-| Nie ma nowej wersji po pushu | Czy push był na `feat/progress`? Czy wdrożenie danego commita ma Ready i Production? Czy nie trwa blokada przypisywania domen po rollbacku? Potem sprawdź aktualizację PWA. |
+| Nie ma nowej wersji po pushu | Czy push był na `main`? Czy wdrożenie danego commita ma Ready i Production? Czy nie trwa blokada przypisywania domen po rollbacku? Potem sprawdź aktualizację PWA. |
 | Build Failed | Otwórz pierwszy konkretny błąd w Build Logs; sprawdź Node 22, `npm ci`, konfigurację i build lokalny. Nie rozwiązuj błędu przez wyłączenie walidacji. |
 | Brak `.output/public/.../latest.json` | Sprawdź jawny preset `static`, komendę `nuxt generate` i katalog wyjściowy Vercel. |
 | Komunikat o braku konfiguracji Supabase | Sprawdź dwie zmienne dla właściwego środowiska i wykonaj nowe wdrożenie po zmianie. |

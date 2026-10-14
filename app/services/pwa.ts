@@ -16,6 +16,7 @@ interface InstallPrompt extends Event {
 export function initializePwa(state: PwaStatus, version: string, development: boolean) {
   let registration: ServiceWorkerRegistration | null = null
   let installPrompt: InstallPrompt | null = null
+  let lastCheck = Date.now()
   const display = window.matchMedia('(display-mode: standalone)')
   const connectivity = () => {
     state.offline = !navigator.onLine
@@ -73,6 +74,9 @@ export function initializePwa(state: PwaStatus, version: string, development: bo
       await navigator.serviceWorker.ready
       inspect()
       ready()
+      if (navigator.onLine) await registration.update().catch(() => {
+        state.message = 'Nie można sprawdzić aktualizacji. Sprawdź połączenie i ponów próbę.'
+      })
     }
     catch {
       state.readiness = 'error'
@@ -88,6 +92,7 @@ export function initializePwa(state: PwaStatus, version: string, development: bo
   async function check() {
     if (state.busy) return
     state.busy = true
+    lastCheck = Date.now()
     state.message = ''
     try {
       if (!registration) await register()
@@ -98,6 +103,9 @@ export function initializePwa(state: PwaStatus, version: string, development: bo
     catch { state.message = 'Nie można sprawdzić aktualizacji. Sprawdź połączenie i ponów próbę.' }
     finally { state.busy = false }
   }
+  if (!development) document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine && Date.now() - lastCheck > 60000) void check()
+  })
   async function update() {
     if (!registration?.waiting || state.busy) return
     state.busy = true

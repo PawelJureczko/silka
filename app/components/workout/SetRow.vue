@@ -9,6 +9,7 @@ const props = defineProps<{
   bodyweight: boolean
   disabled: boolean
   busy: boolean
+  focused?: boolean
   previous?: {
     reps: number
     weightKg: number | null
@@ -16,7 +17,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   change: [set: WorkoutSet]
-  validity: [invalid: boolean]
+  validity: [invalid: boolean, id: string]
 }>()
 const reps = ref(props.set.reps)
 const weight = ref(props.set.weightKg)
@@ -32,7 +33,7 @@ function commit(status = props.set.status) {
   const next = { ...props.set, reps: reps.value, weightKg: weight.value, status, completedAt: status === 'completed' ? props.set.completedAt ?? new Date().toISOString() : null }
   const parsed = workoutSetSchema.safeParse(next)
   error.value = !parsed.success ? 'Podaj 1–100 całkowitych powtórzeń i ciężar 0–1000 kg (do 2 miejsc po przecinku).' : status === 'completed' && !props.bodyweight && weight.value === null ? 'Podaj ciężar wykonanej serii.' : ''
-  emit('validity', Boolean(error.value))
+  emit('validity', Boolean(error.value), props.set.id)
   if (!error.value && parsed.success)
     emit('change', parsed.data)
 }
@@ -41,13 +42,13 @@ function skip() {
   weight.value = null
   commit('skipped')
 }
-onBeforeUnmount(() => emit('validity', false))
+onBeforeUnmount(() => emit('validity', false, props.set.id))
 </script>
 
 <template>
   <fieldset
     class="rounded-lg border p-4"
-    :class="set.status === 'completed' ? 'border-accent/60 bg-surface' : 'border-secondary/50 bg-surface'"
+    :class="focused ? 'border-transparent bg-background px-0' : set.status === 'completed' ? 'border-accent/60 bg-surface' : 'border-secondary/50 bg-surface'"
     :disabled="disabled"
   >
     <legend class="px-1 text-sm font-medium">
@@ -67,6 +68,8 @@ onBeforeUnmount(() => emit('validity', false))
         v-model="reps"
         :label="`Powtórzenia serii ${index + 1}`"
         class="mt-2"
+        :class="focused ? 'min-h-20 text-3xl' : ''"
+        placeholder="Powt."
         :disabled="disabled || set.status === 'skipped'"
         @update:model-value="commit()"
       /></label>
@@ -74,6 +77,8 @@ onBeforeUnmount(() => emit('validity', false))
         v-model="weight"
         :label="`Ciężar wykonanej serii ${index + 1}`"
         class="mt-2"
+        :class="focused ? 'min-h-20 text-3xl' : ''"
+        placeholder="Kg"
         :disabled="disabled || set.status === 'skipped'"
         @update:model-value="commit()"
       /></label>
@@ -89,11 +94,11 @@ onBeforeUnmount(() => emit('validity', false))
       <button
         v-if="set.status !== 'completed' && set.status !== 'skipped'"
         type="button"
-        class="button-secondary grow text-sm"
+        :class="focused ? 'button-primary w-full text-lg' : 'button-secondary grow text-sm'"
         :disabled="busy"
         @click="commit('completed')"
       >
-        Oznacz wykonaną
+        {{ focused ? 'Seria zakończona' : 'Oznacz wykonaną' }}
       </button>
       <button
         v-if="set.status === 'pending'"

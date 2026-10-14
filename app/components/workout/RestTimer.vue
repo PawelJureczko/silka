@@ -4,6 +4,7 @@ import { restRemaining } from '~/domain/workouts'
 const props = defineProps<{
   endsAt: string | null
   disabled?: boolean
+  expanded?: boolean
 }>()
 defineEmits<{
   stop: []
@@ -30,21 +31,23 @@ onBeforeUnmount(() => {
 <template>
   <section
     v-if="endsAt"
-    class="sticky top-3 z-10 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-secondary/60 bg-surface p-4 shadow-lg"
+    class="mb-6 rounded-lg border border-secondary/60 bg-surface p-4"
+    :class="expanded ? 'space-y-6 py-8 text-center' : 'sticky top-3 z-10 flex flex-wrap items-center justify-between gap-3 shadow-lg'"
     aria-label="Minutnik odpoczynku"
   >
     <div>
       <p class="text-xs text-secondary">
-        {{ remaining ? 'Odpoczynek' : 'Możesz zacząć serię' }}
+        {{ remaining ? 'Odpoczynek' : 'Pora na kolejną serię' }}
       </p><p
         class="mt-1 text-3xl font-semibold tabular-nums text-accent"
+        :class="expanded ? 'text-7xl' : ''"
         role="timer"
         aria-label="Pozostały odpoczynek"
       >
         {{ label }}
       </p>
     </div>
-    <div class="flex gap-2">
+    <div class="flex flex-wrap justify-center gap-3">
       <button
         class="button-secondary px-3 text-sm"
         :disabled="disabled"
@@ -56,7 +59,7 @@ onBeforeUnmount(() => {
         :disabled="disabled"
         @click="$emit('stop')"
       >
-        Zakończ
+        {{ expanded ? remaining ? 'Pomiń odpoczynek' : 'Rozpocznij kolejną serię' : 'Zakończ' }}
       </button>
     </div>
   </section>
