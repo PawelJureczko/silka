@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '#shared/types/database.generated'
-import { previousSetsSchema, workoutSchema } from '#shared/schemas/workouts'
+import { previousSetsSchema, workoutSchema } from '../../shared/schemas/workouts.ts'
 import type { WorkoutPayload } from '#shared/schemas/workouts'
+import { nextWorkoutInSequence } from '../domain/workout-sequence.ts'
 
 type Client = SupabaseClient<Database>
 export class WorkoutConflict extends Error {
@@ -69,18 +70,19 @@ export async function fetchPreviousSets(client: Client, id: string) {
   return previousSetsSchema.parse(data)
 }
 export async function fetchWorkoutDashboard(client: Client, timezone: string) {
-  const localDate = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
   const signal = AbortSignal.timeout(12000)
   const activeRequest = client.from('workout_sessions').select('id').eq('status', 'active').abortSignal(signal).maybeSingle()
   const planRequest = client.from('plan_assignments').select('training_plans(id,name,revision,plan_workouts(id,name,weekday,position))').eq('is_active', true).abortSignal(signal).maybeSingle()
-  const recentRequest = client.from('workout_sessions').select('id,workout_name_snapshot,started_at,finished_at,status,source_workout_id,plan_id').neq('status', 'active').order('started_at', { ascending: false }).limit(30).abortSignal(signal)
+  const recentRequest = client.from('workout_sessions').select('id,workout_name_snapshot,started_at,finished_at,status,source_workout_id,plan_id').neq('status', 'active').order('started_at', { ascending: false }).order('id', { ascending: false }).limit(3).abortSignal(signal)
   const [active, plan, recent, weekly] = await Promise.all([activeRequest, planRequest, recentRequest, client.rpc('weekly_workout_count', { p_timezone: timezone }).abortSignal(signal)])
   if (active.error || plan.error || recent.error || weekly.error) throw new Error('Nie udało się odczytać danych treningowych.')
-  const weekday = new Date(`${localDate}T12:00:00Z`).getUTCDay() || 7
   const selected = plan.data?.training_plans ?? null
   const workouts = selected?.plan_workouts.sort((a, b) => a.position - b.position) ?? []
-  const last = recent.data.find(session => session.status === 'completed' && session.plan_id === selected?.id)
-  const lastIndex = workouts.findIndex(workout => workout.id === last?.source_workout_id)
-  const next = workouts.find(workout => workout.weekday === weekday) ?? workouts[(lastIndex + 1) % workouts.length] ?? null
-  return { activeId: active.data?.id ?? null, plan: selected, workouts, next, recent: recent.data.slice(0, 3), weekly: weekly.data ?? 0 }
+  const last = selected
+    ? await client.from('workout_sessions').select('source_workout_id').eq('status', 'completed').eq('plan_id', selected.id)
+        .order('started_at', { ascending: false }).order('id', { ascending: false }).limit(1).abortSignal(signal).maybeSingle()
+    : { data: null, error: null }
+  if (last.error) throw new Error('Nie udało się ustalić kolejnego treningu. Odśwież dane i spróbuj ponownie.')
+  const next = nextWorkoutInSequence(workouts, last.data?.source_workout_id ?? null)
+  return { activeId: active.data?.id ?? null, plan: selected, workouts, next, recent: recent.data, weekly: weekly.data ?? 0 }
 }

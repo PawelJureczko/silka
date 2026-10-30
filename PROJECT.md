@@ -125,7 +125,7 @@ Nie dodajemy ciężkich bibliotek animacji ani wykresów bez uzasadnienia. Rozbu
 
 ### Start
 
-Najbliższa jednostka wynikająca z aktywnego planu i jego kolejności lub przypisanych dni. Przycisk rozpoczęcia treningu, ostatnia aktywność i podsumowanie tygodnia. Jeśli trwa sesja, główną akcją jest jej wznowienie.
+Domyślna jednostka wynika z kolejności w aktywnym planie i ostatniej ukończonej sesji tego planu: A → B → C → A. Przypisany dzień tygodnia nie nadpisuje tej kolejności. Porzucone sesje oraz treningi z innych planów nie przesuwają kolejki. Ostatnia ukończona sesja jest wyszukiwana niezależnie od krótkiej listy ostatnich aktywności. Nowy plan lub brak pasującego identyfikatora jednostki po edycji planu oznacza start od pierwszej pozycji. Użytkownik może ręcznie wybrać inną jednostkę; po jej ukończeniu kolejka przechodzi do następnej. Przycisk rozpoczęcia treningu, ostatnia aktywność i podsumowanie tygodnia. Jeśli trwa sesja lub czeka lokalny zapis, główną akcją pozostaje wznowienie.
 
 ### Plany
 
