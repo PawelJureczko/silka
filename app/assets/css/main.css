@@ -39,6 +39,7 @@
   .progress-layout { @apply grid items-start gap-y-8; }
   .plan-entry { @apply grid min-w-0 gap-5 border-t border-white/15 py-6; grid-template-columns: 2.5rem minmax(0, 1fr); }
   .plan-entry-actions { @apply col-start-2 flex flex-wrap gap-3; }
+  .workout-focus input { scroll-margin-block: 1.5rem; }
 }
 
 @media (min-width: 700px) {

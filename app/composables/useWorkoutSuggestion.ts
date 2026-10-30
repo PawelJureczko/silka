@@ -8,7 +8,7 @@ export function useWorkoutSuggestion(exercise: MaybeRefOrGetter<WorkoutExercise>
   const sync = useWorkoutSync()
   const { user } = useAuthState()
   const variant = () => ({ ...toValue(exercise), exerciseId: toValue(exercise).exerciseId })
-  const history = useAsyncData(() => `suggestion:${user.value?.id}:${sessionId}:${toValue(exercise).id}`, () => fetchExerciseProgress(client, variant(), startedAt), { lazy: true, immediate: false })
+  const history = useAsyncData(() => `suggestion:${user.value?.id}:${sessionId}:${toValue(exercise).id}:${toValue(exercise).exerciseId}:${toValue(exercise).loadMode}:${toValue(exercise).weightConvention}`, () => fetchExerciseProgress(client, variant(), startedAt), { lazy: true, immediate: false })
   const suggestion = computed(() => history.data.value ? suggestWeight(toValue(exercise), history.data.value) : null)
   async function apply(weightKg: number, expected: { id: string, weightKg: number | null, reps: number | null }[]) {
     return sync.update((session) => {

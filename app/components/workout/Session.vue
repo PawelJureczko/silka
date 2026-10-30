@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { WorkoutSet } from '#shared/schemas/workouts'
+import { exerciseSchema } from '#shared/schemas/plans'
+import type { CatalogExercise } from '~/services/plans'
 import { finishWorkout, workoutSummary } from '~/domain/workouts'
+import { replaceWorkoutExercise } from '~/domain/workout-replacement'
+import { signalNextSet } from '~/services/workout-feedback'
 import { downloadPlanExport } from '~/services/plan-transfer'
 
 const props = defineProps<{
@@ -14,10 +18,68 @@ const discardDialog = ref(false)
 const cancelDialog = ref(false)
 const deleteDialog = ref(false)
 const focusMode = ref(true)
+const selectedSetId = ref<string | null>(null)
+const replacementId = ref<string | null>(null)
+const replacementBaseId = ref<string | null>(null)
+const replacement = ref<CatalogExercise | null>(null)
+const replacementError = ref('')
+const replacing = ref(false)
+const nextSetNotice = ref('')
+const replacementExercise = computed(() => session.value?.exercises.find(item => item.id === replacementId.value))
 const immersive = computed(() => session.value?.status === 'active' && focusMode.value)
 const editable = computed(() => session.value?.status === 'active' && Boolean(local.value) && !local.value?.conflict && !storageError.value && !loading.value && !deleting.value)
 const invalidCount = computed(() => Object.values(invalid.value).filter(Boolean).length)
 const summary = computed(() => session.value ? workoutSummary(session.value) : null)
+const canCompleteRest = computed(() => editable.value && saving.value === 0 && !finishDialog.value && !discardDialog.value && !deleteDialog.value && !replacementId.value)
+useRestCompletion(computed(() => session.value?.restEndsAt ?? null), canCompleteRest, async (end) => {
+  const saved = await update((value) => {
+    if (value.restEndsAt !== end || Date.parse(end) > Date.now()) return false
+    value.restEndsAt = null
+  })
+  if (saved) {
+    nextSetNotice.value = 'Przerwa zakończona. Kolejna seria jest gotowa.'
+    signalNextSet()
+  }
+  return saved
+})
+watch(() => session.value?.restEndsAt, (end) => {
+  if (end) nextSetNotice.value = ''
+})
+function openReplacement(id: string) {
+  replacementId.value = id
+  replacementBaseId.value = session.value?.exercises.find(item => item.id === id)?.exerciseId ?? null
+  replacement.value = null
+  replacementError.value = ''
+}
+function closeReplacement() {
+  if (replacing.value) return
+  replacementId.value = null
+  replacement.value = null
+}
+async function confirmReplacement() {
+  if (!replacement.value || !replacementId.value || !editable.value || replacing.value) return
+  replacing.value = true
+  replacementError.value = ''
+  const chosen = replacement.value
+  const exerciseId = replacementId.value
+  const baseId = replacementBaseId.value
+  let target: string | null = null
+  const saved = await update((value) => {
+    if (value.exercises.find(item => item.id === exerciseId)?.exerciseId !== baseId) throw new Error('Ćwiczenie zmieniło się podczas wyboru. Otwórz katalog ponownie.')
+    const descriptor = exerciseSchema.parse({ name: chosen.name, equipment: chosen.equipment, muscleGroup: chosen.muscle_group, loadMode: chosen.load_mode, weightConvention: chosen.weight_convention, weightIncrementKg: chosen.weight_increment_kg })
+    const result = replaceWorkoutExercise(value, exerciseId, {
+      id: chosen.id, name: descriptor.name, equipment: descriptor.equipment, loadMode: descriptor.loadMode, weightConvention: descriptor.weightConvention,
+    }, () => crypto.randomUUID())
+    Object.assign(value, result.session)
+    target = result.selectedSetId
+  })
+  replacing.value = false
+  if (saved) {
+    selectedSetId.value = target
+    closeReplacement()
+  }
+  else replacementError.value = error.value || 'Nie udało się zapisać podmiany lokalnie. Spróbuj ponownie.'
+}
 const saveLabel = computed(() => storageError.value ? 'Brak lokalnego zapisu' : saving.value ? 'Zapisywanie lokalnie…' : local.value?.conflict ? 'Konflikt · szkic zachowany lokalnie' : local.value?.start ? 'Oczekuje na rozpoczęcie na koncie' : !session.value ? 'Brak odczytanego treningu' : local.value?.queue.length ? syncing.value ? 'Zapisano lokalnie · synchronizacja…' : 'Zapisano lokalnie · oczekuje na synchronizację' : 'Zapisano na koncie')
 function change(exerciseId: string, next: WorkoutSet) {
   void update((value) => {
@@ -81,6 +143,13 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
 <template>
   <NuxtLayout :name="immersive ? 'workout' : 'default'">
     <div>
+      <p
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+      >
+        {{ nextSetNotice }}
+      </p>
       <NuxtLink
         to="/"
         class="mb-4 inline-flex min-h-11 items-center text-sm text-secondary"
@@ -103,7 +172,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
       >
         <p
           role="status"
-          class="text-sm"
+          class="min-h-10 text-sm"
           :class="local?.queue.length || local?.conflict ? 'text-accent' : 'text-secondary'"
         >
           {{ saveLabel }}
@@ -117,7 +186,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
         </p>
         <div class="flex flex-wrap gap-2">
           <UiBaseButton
-            v-if="local?.queue.length || local?.start"
+            v-if="(local?.queue.length || local?.start) && error"
             variant="secondary"
             :busy="syncing"
             :disabled="Boolean(local?.conflict)"
@@ -194,6 +263,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
         />
         <WorkoutFocus
           v-if="immersive"
+          v-model:selected-id="selectedSetId"
           :session="session"
           :previous="local?.previous ?? []"
           :editable="editable"
@@ -204,6 +274,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
           @extend="timer(true)"
           @finish="finishDialog = 'completed'"
           @list="focusMode = false"
+          @replace="openReplacement"
         />
         <UiBaseButton
           v-if="session.status === 'active' && !immersive"
@@ -256,6 +327,14 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
                 </p>
               </div>
             </div>
+            <UiBaseButton
+              v-if="editable && exercise.sets.some(set => set.status === 'pending')"
+              variant="secondary"
+              :disabled="saving > 0 || invalidCount > 0"
+              @click="openReplacement(exercise.id)"
+            >
+              Podmień ćwiczenie z katalogu
+            </UiBaseButton>
             <p
               v-if="exercise.notes"
               class="text-sm whitespace-pre-wrap text-secondary"
@@ -264,6 +343,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
             </p>
             <LazyWorkoutSuggestion
               v-if="editable"
+              :key="exercise.exerciseId"
               :exercise="exercise"
               :started-at="session.startedAt"
               :session-id="session.id"
@@ -318,6 +398,64 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
           </UiBaseButton>
         </div>
       </template>
+      <UiDialog
+        v-if="replacementId && !replacement"
+        title="Podmień ćwiczenie"
+        @close="closeReplacement"
+      >
+        <p class="mb-4 text-sm text-secondary">
+          Wybierz zamiennik dla: {{ replacementExercise?.name }}.
+        </p>
+        <LazyPlansExercisePicker
+          @select="replacement = $event"
+          @close="closeReplacement"
+        />
+      </UiDialog>
+      <UiDialog
+        v-if="replacementId && replacement"
+        title="Potwierdź podmianę"
+        :busy="replacing"
+        @close="closeReplacement"
+      >
+        <p class="text-sm text-secondary">
+          Zamiast: {{ replacementExercise?.name }}
+        </p>
+        <p class="mt-2 text-xl font-semibold">
+          {{ replacement.name }}
+        </p>
+        <p class="mt-4 text-sm leading-relaxed text-secondary">
+          Zmienisz ćwiczenie tylko w tym treningu. Pozostaną zakresy powtórzeń i czas przerwy. Wpisz ciężar dla nowego ćwiczenia; poprzednie obciążenia i wskazówki nie będą przenoszone.
+        </p>
+        <p
+          v-if="replacementExercise?.sets.some(set => set.status !== 'pending')"
+          class="mt-3 text-sm leading-relaxed text-secondary"
+        >
+          Dotychczasowe wyniki pozostaną przy starym ćwiczeniu. Jego oczekujące serie oznaczymy jako pominięte, a zamiennik z pozostałymi seriami dopiszemy na końcu sesji i od razu go otworzymy.
+        </p>
+        <p
+          v-if="replacementError"
+          role="alert"
+          class="mt-4 text-sm text-red-300"
+        >
+          {{ replacementError }}
+        </p>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <UiBaseButton
+            :busy="replacing"
+            :disabled="!editable || saving > 0 || replacement.id === replacementExercise?.exerciseId"
+            @click="confirmReplacement"
+          >
+            Podmień ćwiczenie
+          </UiBaseButton>
+          <UiBaseButton
+            variant="secondary"
+            :disabled="replacing"
+            @click="closeReplacement"
+          >
+            Anuluj
+          </UiBaseButton>
+        </div>
+      </UiDialog>
       <UiDialog
         v-if="deleteDialog && session"
         title="Trwale usunąć trening?"

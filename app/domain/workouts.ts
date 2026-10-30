@@ -3,8 +3,9 @@ import type { Workout, WorkoutJournal, WorkoutPayload } from '../../shared/schem
 
 export function workoutPayload(session: Workout): WorkoutPayload {
   return workoutPayloadSchema.parse({ status: session.status, finishedAt: session.finishedAt, restEndsAt: session.restEndsAt,
-    exercises: session.exercises.map(exercise => ({ id: exercise.id, sets: exercise.sets.map(set => ({
+    exercises: session.exercises.map(exercise => ({ id: exercise.id, exerciseId: exercise.exerciseId, restSeconds: exercise.restSeconds, sets: exercise.sets.map(set => ({
       id: set.id, reps: set.reps, weightKg: set.weightKg, status: set.status, completedAt: set.completedAt,
+      setType: set.setType, plannedRepsMin: set.plannedRepsMin, plannedRepsMax: set.plannedRepsMax, plannedWeightKg: set.plannedWeightKg,
     })) })),
   })
 }

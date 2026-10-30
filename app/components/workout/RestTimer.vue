@@ -62,5 +62,11 @@ onBeforeUnmount(() => {
         {{ expanded ? remaining ? 'Pomiń odpoczynek' : 'Rozpocznij kolejną serię' : 'Zakończ' }}
       </button>
     </div>
+    <p
+      v-if="expanded && remaining"
+      class="text-sm text-secondary"
+    >
+      Kolejna seria pojawi się automatycznie po przerwie.
+    </p>
   </section>
 </template>

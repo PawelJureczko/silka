@@ -3,8 +3,8 @@ import type { Workout, WorkoutSet, PreviousSets } from '#shared/schemas/workouts
 import { nextWorkoutSet } from '~/domain/workout-focus'
 
 const props = defineProps<{ session: Workout, previous: PreviousSets, editable: boolean, busy: boolean }>()
-defineEmits<{ change: [exerciseId: string, set: WorkoutSet], validity: [id: string, invalid: boolean], stop: [], extend: [], finish: [], list: [] }>()
-const selectedId = ref<string | null>(null)
+defineEmits<{ change: [exerciseId: string, set: WorkoutSet], validity: [id: string, invalid: boolean], stop: [], extend: [], finish: [], list: [], replace: [exerciseId: string] }>()
+const selectedId = defineModel<string | null>('selectedId', { default: null })
 const selectionOpen = ref(false)
 const target = computed(() => nextWorkoutSet(props.session, selectedId.value))
 const completed = computed(() => props.session.exercises.reduce((sum, item) => sum + item.sets.filter(set => set.status === 'completed').length, 0))
@@ -17,7 +17,7 @@ function choose(id: string) {
 </script>
 
 <template>
-  <div class="flex min-h-[75dvh] flex-col">
+  <div class="workout-focus">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/15 pb-4">
       <p class="text-sm text-secondary">
         {{ completed }} / {{ total }} serii wykonanych
@@ -40,6 +40,14 @@ function choose(id: string) {
       <p class="mt-3 text-sm text-secondary">
         {{ target.exercise.equipment }} · {{ ({ total: 'kg łącznie', per_hand: 'kg na rękę', bodyweight: 'masa ciała + dodatkowe kg', assistance: 'kg asysty' })[target.exercise.weightConvention] }}
       </p>
+      <button
+        type="button"
+        class="mt-2 min-h-11 text-sm text-secondary underline underline-offset-4"
+        :disabled="!editable || busy"
+        @click="$emit('replace', target.exercise.id)"
+      >
+        Podmień ćwiczenie z katalogu
+      </button>
       <details
         v-if="target.exercise.notes"
         class="mt-3"
@@ -53,7 +61,7 @@ function choose(id: string) {
       </details>
       <div
         v-if="session.restEndsAt"
-        class="my-auto py-8"
+        class="py-8"
       >
         <WorkoutRestTimer
           :ends-at="session.restEndsAt"
@@ -68,7 +76,7 @@ function choose(id: string) {
       </div>
       <div
         v-else
-        class="mt-auto pt-6"
+        class="pt-6"
       >
         <WorkoutSetRow
           :key="target.set.id"

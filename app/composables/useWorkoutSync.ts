@@ -51,20 +51,28 @@ export function useWorkoutSync() {
         storageError.value = cause instanceof Error ? cause.message : 'Lokalny zapis jest niedostępny.'
     }
   }
-  async function update(action: (session: Workout) => void) {
+  async function update(action: (session: Workout) => unknown) {
     const owner = user.value?.id
     if (!owner || deleting.value)
       return false
     saving.value++
+    let changed = false
     try {
       await withWorkoutLock(owner, 'journal', async () => {
         const current = await readWorkoutJournal(owner)
         if (deleting.value || !current?.session || current.conflict || current.session.status !== 'active')
           throw new Error('Trening nie jest dostępny do edycji.')
         const session = workoutSchema.parse(current.session)
-        action(session)
-        await store(queueWorkout(current, session, crypto.randomUUID()))
+        if (action(session) === false) return
+        const next = queueWorkout(current, session, crypto.randomUUID())
+        next.previous = current.previous.filter((previous) => {
+          const before = current.session?.exercises.find(item => item.id === previous.workoutExerciseId)
+          return session.exercises.some(item => item.id === previous.workoutExerciseId && item.exerciseId === before?.exerciseId)
+        })
+        await store(next)
+        changed = true
       })
+      if (!changed) return false
       storageError.value = ''
       error.value = ''
       void sync()

@@ -182,6 +182,8 @@ Nie wyłączaj RLS, aby „naprawić” komunikat permission denied. Sprawdź se
 
 **Aktualizacja 14.10.2026:** ostatnia migracja to `20261014000100_more_exercise_variants.sql`, zastosowana lokalnie i w produkcji. Dodano 31 wariantów bez zmiany dotychczasowych ID. Bazowy katalog ma teraz 112 wpisów, a produkcja 116 aktywnych wspólnych ćwiczeń. Katalog aplikacji i wybór w edytorze obsługują widoki „Wszystkie A–Z” / „Partie mięśniowe”, filtr partii oraz wyszukiwanie. Powyższe liczby 81/85 opisują stan sprzed tego rozszerzenia.
 
+**Aktualizacja 30.10.2026:** migracja `20261030000100_workout_exercise_replacement.sql` rozszerza zapis aktywnego treningu o podmiany z katalogu. Jest zastosowana lokalnie i w produkcji, zachowuje SECURITY INVOKER oraz starszy format kolejki. Nie zmienia istniejących planów i wyników. W aplikacji użyj „Podmień ćwiczenie z katalogu” i zatwierdź wybór. Przy częściowym wykonaniu dotychczasowe wyniki pozostają przy oryginale, a pozostałe serie trafiają do zamiennika. Po przerwie ekran automatycznie pokazuje następną serię; wibracja zależy od obsługi przez urządzenie. Nowy klient wymaga tej migracji, więc przy odtwarzaniu wdrożenia zastosuj bazę przed publikacją aplikacji.
+
 <a id="katalog"></a>
 ## 5. Katalog ćwiczeń
 

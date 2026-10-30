@@ -30,8 +30,9 @@ export const workoutSchema = z.strictObject({
 })
 export const workoutPayloadSchema = z.strictObject({
   status: z.enum(['active', 'completed', 'abandoned']), finishedAt: instant.nullable(), restEndsAt: instant.nullable(),
-  exercises: z.array(z.strictObject({ id: z.uuid(), sets: z.array(z.strictObject({
+  exercises: z.array(z.strictObject({ id: z.uuid(), exerciseId: z.uuid().optional(), restSeconds: z.number().int().min(0).max(900).optional(), sets: z.array(z.strictObject({
     id: z.uuid(), reps, weightKg: weightSchema.nullable(), status: z.enum(['pending', 'completed', 'skipped']), completedAt: instant.nullable(),
+    setType: z.enum(['working', 'warmup']).optional(), plannedRepsMin: reps.optional(), plannedRepsMax: reps.optional(), plannedWeightKg: weightSchema.nullable().optional(),
   })).min(1).max(40) })).min(1).max(20),
 })
 export const previousSetsSchema = z.array(z.strictObject({

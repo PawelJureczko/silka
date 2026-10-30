@@ -41,6 +41,9 @@ ENERGY 2 / RHYTHM 2 / MOTION 1. Energia wynika z typografii i wyniku, rytm z ró
 | Katalog: przełącznik A–Z / partie, spis z liniami | Dwie kolejności odpowiadają szukaniu konkretnej nazwy albo ćwiczeń danej partii, bez powielania bazy i kart. |
 | Nagłówki partii z liczbą ćwiczeń i natywny filtr | Ułatwiają przejście do barków lub klatki; liczby wynikają z rzeczywistych wyników wyszukiwania. |
 | Pełny katalog przewija się wraz ze stroną | Usuwa małe okno zagnieżdżonego przewijania; ograniczony obszar zostaje tylko w wyborze ćwiczenia w edytorze. |
+| Formularz serii w stałym przepływie, z miejscem na status zapisu | Otwarcie klawiatury i zwykła synchronizacja nie dociskają pól do innej krawędzi ekranu. |
+| Podmiana jako katalog i osobne potwierdzenie | Pozwala sprawdzić ćwiczenie oraz konsekwencje dla pozostałych serii przed zmianą; wykonane wyniki zachowują tożsamość. |
+| Koniec przerwy otwiera pola bez autofocusa | Następna seria jest dostępna od razu, a użytkownik sam decyduje, kiedy wywołać klawiaturę. |
 
 ## Reflow i obsługa
 

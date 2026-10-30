@@ -1,5 +1,7 @@
 # Siłka
 
+Aktualizacja treningu 30.10.2026: „Podmień ćwiczenie z katalogu” umożliwia wybór dowolnej dostępnej pozycji i zatwierdzenie podmiany tylko w bieżącej sesji. Wykonane serie zachowują oryginalne ćwiczenie; pozostałe mogą trafić do zamiennika z nowymi ID. Koniec przerwy automatycznie otwiera następną serię bez wywoływania klawiatury, a wibracja działa wyłącznie przy obsłudze przez urządzenie. Usunięto przesuwanie formularza powodowane układem i zwykłą synchronizacją. Wymagana jest migracja `20261030000100_workout_exercise_replacement.sql` przed wdrożeniem klienta. Test fizycznego iPhone’a pozostaje otwarty.
+
 Prywatna aplikacja treningowa dla dwóch osób. Założenia produktu i etapy: [PROJECT.md](PROJECT.md). Zasady pracy: [AGENTS.md](AGENTS.md).
 
 Zrealizowano etapy 1–5: Nuxt 4, Vue 3, TypeScript strict, Tailwind 4, mobilną nawigację, Auth, profil i bazę z RLS. Działają wspólny katalog z dodawaniem ćwiczeń przez zalogowane konta, edytor jednostek i serii, aktywne przypisanie, archiwizacja i przywracanie oraz eksport/import kopii z podglądem. Działa aktywny trening: dashboard, serie, poprzednie wyniki, odpoczynek, lokalny szkic i synchronizacja oraz podsumowanie. Działają historia z filtrami, wykresy, rekordy, regularność, zatwierdzane sugestie ciężaru oraz edycja profilu. Ręczna konsultacja AI obsługuje prompty, cztery akcje JSON v1 i zatwierdzany zapis. Etap 6 ma pliki instalacyjne PWA, otwieranie bez serwera, ręczne aktualizacje i wdrożenie HTTPS; testy fizycznego iPhone’a pozostają otwarte.
