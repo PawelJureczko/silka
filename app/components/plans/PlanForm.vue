@@ -146,6 +146,10 @@ function submit() {
                 ×
               </button>
             </div>
+            <ExercisesGuideLink
+              v-if="exerciseInfo(exercise.exerciseId)"
+              :name="exerciseInfo(exercise.exerciseId)!.name"
+            />
             <div class="flex items-center justify-between gap-2">
               <label class="text-xs text-secondary">Odpoczynek (s)<input
                 v-model.number="exercise.restSeconds"

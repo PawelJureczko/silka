@@ -44,6 +44,8 @@ ENERGY 2 / RHYTHM 2 / MOTION 1. Energia wynika z typografii i wyniku, rytm z ró
 | Formularz serii w stałym przepływie, z miejscem na status zapisu | Otwarcie klawiatury i zwykła synchronizacja nie dociskają pól do innej krawędzi ekranu. |
 | Podmiana jako katalog i osobne potwierdzenie | Pozwala sprawdzić ćwiczenie oraz konsekwencje dla pozostałych serii przed zmianą; wykonane wyniki zachowują tożsamość. |
 | Koniec przerwy otwiera pola bez autofocusa | Następna seria jest dostępna od razu, a użytkownik sam decyduje, kiedy wywołać klawiaturę. |
+| Instrukcja jako podpisany link pod nazwą ćwiczenia | Pozostaje oddzielona od wyboru i zapisu serii; nazwa źródła i nowa karta wyjaśniają przejście do materiału zewnętrznego. |
+| Poprzedni wynik kolejnej serii nad timerem | Pozwala przygotować obciążenie podczas przerwy; białe cyfry odróżniają wynik od limonkowego odliczania. |
 
 ## Reflow i obsługa
 

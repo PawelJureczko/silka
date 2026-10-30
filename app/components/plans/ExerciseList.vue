@@ -29,6 +29,10 @@ const conventions: Record<string, string> = { total: 'kg łącznie', per_hand: '
           aria-hidden="true"
         >+</span>
       </component>
+      <ExercisesGuideLink
+        :name="exercise.name"
+        :class="selectable ? 'px-3 pb-2' : 'pb-2'"
+      />
     </li>
   </ul>
 </template>

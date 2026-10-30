@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Workout, WorkoutSet, PreviousSets } from '#shared/schemas/workouts'
-import { nextWorkoutSet } from '~/domain/workout-focus'
+import { nextWorkoutSet, previousRestSets, recordedSetLabel } from '~/domain/workout-focus'
 
 const props = defineProps<{ session: Workout, previous: PreviousSets, editable: boolean, busy: boolean }>()
 defineEmits<{ change: [exerciseId: string, set: WorkoutSet], validity: [id: string, invalid: boolean], stop: [], extend: [], finish: [], list: [], replace: [exerciseId: string] }>()
@@ -10,6 +10,7 @@ const target = computed(() => nextWorkoutSet(props.session, selectedId.value))
 const completed = computed(() => props.session.exercises.reduce((sum, item) => sum + item.sets.filter(set => set.status === 'completed').length, 0))
 const total = computed(() => props.session.exercises.reduce((sum, item) => sum + item.sets.length, 0))
 const previousSet = computed(() => target.value ? props.previous.find(item => item.workoutExerciseId === target.value?.exercise.id)?.sets.find(set => set.position === target.value?.setIndex && set.setType === target.value?.set.setType) : undefined)
+const restHistory = computed(() => target.value ? previousRestSets(target.value.exercise, target.value.setIndex, props.previous) : null)
 function choose(id: string) {
   selectedId.value = id
   selectionOpen.value = false
@@ -40,6 +41,7 @@ function choose(id: string) {
       <p class="mt-3 text-sm text-secondary">
         {{ target.exercise.equipment }} · {{ ({ total: 'kg łącznie', per_hand: 'kg na rękę', bodyweight: 'masa ciała + dodatkowe kg', assistance: 'kg asysty' })[target.exercise.weightConvention] }}
       </p>
+      <ExercisesGuideLink :name="target.exercise.name" />
       <button
         type="button"
         class="mt-2 min-h-11 text-sm text-secondary underline underline-offset-4"
@@ -61,8 +63,33 @@ function choose(id: string) {
       </details>
       <div
         v-if="session.restEndsAt"
-        class="py-8"
+        class="py-6"
       >
+        <section
+          class="mb-5 space-y-2 border-t border-white/15 pt-4"
+          aria-label="Obciążenie do kolejnej serii"
+        >
+          <template v-if="restHistory?.sets.length">
+            <p class="text-sm text-secondary">
+              {{ restHistory.exact ? 'Poprzednio w tej serii' : 'Poprzedni trening tego ćwiczenia (brak tej serii)' }}
+            </p>
+            <ul class="space-y-1">
+              <li
+                v-for="set in restHistory.sets"
+                :key="set.position"
+                class="text-2xl leading-snug font-semibold tabular-nums"
+              >
+                {{ recordedSetLabel(set, target.exercise.weightConvention) }}
+              </li>
+            </ul>
+          </template>
+          <p
+            v-else
+            class="text-sm text-secondary"
+          >
+            Brak poprzedniego wyniku dla tej serii. Dobierz obciążenie przed jej rozpoczęciem.
+          </p>
+        </section>
         <WorkoutRestTimer
           :ends-at="session.restEndsAt"
           :disabled="!editable || busy"
@@ -70,9 +97,6 @@ function choose(id: string) {
           @stop="$emit('stop')"
           @extend="$emit('extend')"
         />
-        <p class="mt-4 text-sm text-secondary">
-          Następna: {{ target.exercise.name }}, seria {{ target.setIndex + 1 }}.
-        </p>
       </div>
       <div
         v-else

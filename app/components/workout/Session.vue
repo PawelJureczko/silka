@@ -327,6 +327,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
                 </p>
               </div>
             </div>
+            <ExercisesGuideLink :name="exercise.name" />
             <UiBaseButton
               v-if="editable && exercise.sets.some(set => set.status === 'pending')"
               variant="secondary"
