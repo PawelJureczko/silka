@@ -8,6 +8,7 @@ const { data: overview, status: overviewStatus, error: overviewError } = progres
 const { data: history, status: historyStatus, error: historyError, refresh: refreshHistory } = progress.history
 const { data: exercise, status: exerciseStatus, error: exerciseError, refresh: refreshExercise } = progress.exercise
 const metric = ref<'weight' | 'volume' | 'reps'>('weight')
+const view = ref<'exercise' | 'sessions' | 'period'>('exercise')
 watch(selected, (value) => {
   metric.value = value?.loadMode === 'bodyweight' ? 'reps' : 'weight'
 })
@@ -29,7 +30,31 @@ function minutes(start: string, end: string) {
       title="Zapis siły."
       description="Porównaj sesje. Zobacz, co zmienia się pod sztangą."
     />
-    <div class="progress-layout">
+    <div
+      role="group"
+      aria-label="Widok statystyk"
+      class="mb-7 grid grid-cols-3 gap-2"
+    >
+      <button
+        v-for="item in ([{ id: 'exercise', label: 'Ćwiczenia' }, { id: 'sessions', label: 'Treningi' }, { id: 'period', label: 'Kalendarz' }] as const)"
+        :key="item.id"
+        type="button"
+        class="min-h-11 min-w-0 rounded-md border px-1 py-2 text-sm"
+        :class="view === item.id ? 'border-accent bg-interactive underline underline-offset-4' : 'border-secondary text-secondary'"
+        :aria-pressed="view === item.id"
+        @click="view = item.id"
+      >
+        {{ item.label }}
+      </button>
+    </div>
+    <LazyProgressPeriod
+      v-if="view === 'period'"
+      :timezone="timezone"
+    />
+    <div
+      v-else
+      class="progress-layout"
+    >
       <p
         v-if="overviewStatus === 'pending'"
         role="status"
@@ -54,7 +79,7 @@ function minutes(start: string, end: string) {
         </UiBaseButton>
       </div>
       <section
-        v-if="overview?.exercises.length"
+        v-if="view === 'exercise' && overview?.exercises.length"
         class="min-w-0"
       >
         <h2 class="section-label">
@@ -139,10 +164,14 @@ function minutes(start: string, end: string) {
               Do 30 ostatnich sesji z wykonanymi seriami roboczymi. Rekord obejmuje całą historię zgodnego ćwiczenia, sprzętu i sposobu zapisu. Rozgrzewki i porzucone sesje są pomijane. {{ selected.loadMode === 'assisted' ? 'Mniejsza asysta oznacza mniejsze wsparcie.' : selected.loadMode === 'bodyweight' || metric === 'reps' ? 'Powtórzenia mogą pochodzić z serii o różnym obciążeniu; sprawdź szczegóły sesji.' : metric === 'volume' ? 'Objętość to suma kg × powtórzenia; dla hantli liczymy wg zapisu na jedną rękę.' : '' }}
             </p>
           </details>
+          <LazyProgressExerciseInsights
+            :variant="selected"
+            :timezone="timezone"
+          />
         </template>
       </section>
       <UiEmptyState
-        v-else-if="overview && !overview.exercises.length"
+        v-else-if="view === 'exercise' && overview && !overview.exercises.length"
         kind="progress"
         title="Pierwszy wynik przed Tobą"
         description="Zakończ trening z wykonaną serią roboczą. Tutaj pojawi się wykres i Twój rekord."
@@ -153,15 +182,19 @@ function minutes(start: string, end: string) {
         >Wybierz trening</NuxtLink>
       </UiEmptyState>
       <ProgressOverview
-        v-if="overview"
+        v-if="view === 'exercise' && overview"
         :overview="overview"
         :target="target"
       />
       <LazyProgressComparison
+        v-if="view === 'sessions'"
         class="progress-history"
         :timezone="timezone"
       />
-      <section class="progress-history ledger-section min-w-0">
+      <section
+        v-if="view === 'sessions'"
+        class="progress-history ledger-section min-w-0"
+      >
         <h2 class="text-lg font-semibold">
           Historia treningów
         </h2>

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { compareSessions, recordedStatsSet } from '../../app/domain/training-stats.ts'
+import { compareSessions, recordedStatsSet, planCompletion, localDateKey, mondayOf, shiftDate, shiftMonth, monthCells } from '../../app/domain/training-stats.ts'
 
 const set = { id: 's', position: 0, set_type: 'working', status: 'completed', reps: 10, weight_kg: 20, planned_reps_min: 8, planned_reps_max: 12 }
 const exercise = { id: 'e', exercise_id: 'catalog', equipment_snapshot: 'Hantle', load_mode_snapshot: 'external', weight_convention_snapshot: 'per_hand', position: 0, workout_sets: [set] }
@@ -25,4 +25,19 @@ test('opis zachowuje zero, brak ciężaru, asystę i polski przecinek', () => {
   assert.match(recordedStatsSet({ ...set, weight_kg: 0 }, 'bodyweight'), /0 kg dodatkowo/)
   assert.match(recordedStatsSet({ ...set, weight_kg: null }, 'bodyweight'), /ciężar nieznany/)
   assert.match(recordedStatsSet(set, 'assistance'), /kg asysty/)
+})
+
+test('wykonanie planu odróżnia zakresy, niewykonane, rozgrzewki i dodatkowe serie', () => {
+  const sets = [set, { ...set, reps: 7 }, { ...set, reps: 13 }, { ...set, status: 'skipped', reps: null }, { ...set, planned_reps_min: null, planned_reps_max: null }, { ...set, set_type: 'warmup' }]
+  assert.deepEqual(planCompletion({ ...session, workout_exercises: [{ ...exercise, workout_sets: sets }] }), { planned: 4, completed: 3, inRange: 1, below: 1, above: 1, extra: 1 })
+})
+test('daty lokalne, poniedziałki i kalendarz zachowują miesiące, lata, DST i rok przestępny', () => {
+  assert.equal(localDateKey(new Date('2025-03-30T22:30:00Z'), 'Europe/Warsaw'), '2025-03-31')
+  assert.equal(localDateKey(new Date('2025-03-30T22:30:00Z'), 'UTC'), '2025-03-30')
+  assert.equal(mondayOf('2026-01-01'), '2025-12-29')
+  assert.equal(shiftDate('2025-03-30', 1), '2025-03-31')
+  assert.equal(shiftMonth('2026-01-01', -1), '2025-12-01')
+  assert.equal(monthCells('2024-02-01').filter(Boolean).length, 29)
+  assert.equal(monthCells('2026-11-01').length, 42)
+  assert.equal(monthCells('2026-11-01')[6], '2026-11-01')
 })

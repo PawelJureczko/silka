@@ -50,6 +50,10 @@
   .plan-entry { grid-template-columns: 3.5rem minmax(0, 1fr); }
 }
 
+@media (min-width: 850px) {
+  .period-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
 @media (min-width: 1000px) {
   .app-main { padding-bottom: 3rem; }
   .progress-layout { grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr); column-gap: 3rem; }

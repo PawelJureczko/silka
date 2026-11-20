@@ -53,6 +53,8 @@ ENERGY 2 / RHYTHM 2 / MOTION 1. Energia wynika z typografii i wyniku, rytm z ró
 
 Porównanie jednostek zestawia dwie sesje w dwóch krótkich kolumnach pod numerowanym ćwiczeniem. Stała kolejność „Poprzednio / Ostatnio” pozwala odczytać konkretne serie; długie opisy zawijają się również na telefonie. Zachowujemy ENERGY 2 / RHYTHM 2 / MOTION 1, istniejącą paletę i typografię dziennika.
 
+Trzy tekstowe przełączniki statystyk rozdzielają wyniki ćwiczeń, sesje i okresy, żeby rozbudowa nie tworzyła długiego ekranu z wieloma wykresami. Rekordy i decyzje są spisem z liniami; wynik i data mają wyraźne, oddzielne role. Miesięczna liczba treningów jest główną liczbą, a kalendarz obok niej od 850 px pozwala od razu wejść w sesję. Niższy próg nie pomieściłby siedmiu wygodnych pól dnia. Na najmniejszym telefonie kalendarz korzysta z całej szerokości, z polami co najmniej 44 px i odstępem 1 px. Podkreślenie wskazuje wybór również bez koloru. Poziome słupki partii pokazują liczbę serii i nazwę, bez kolorowego kodowania ani arbitralnych celów. Strzałki służą wyłącznie zmianie miesiąca lub tygodnia. Wszystkie dane mają jawny zakres i metodę liczenia.
+
 - Telefon: jeden przepływ treści, dolna nawigacja z czterema podpisanymi pozycjami, główne kontrolki co najmniej 44 × 44 px.
 - Od 700 px: start i postępy rozdzielają treści na dwie kolumny; długa historia zajmuje całą szerokość.
 - Od 1000 px: nawigacja mieści się w nagłówku; wiersz planu ma oddzielną kolumnę akcji. Treść zachowuje maksymalną szerokość.

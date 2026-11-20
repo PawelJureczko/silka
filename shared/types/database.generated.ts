@@ -263,6 +263,9 @@ isOneToOne: false
 "delete_workout":
 { Args: { "p_base_revision": number,"p_id": string }; Returns: undefined
                            },
+"exercise_insights":
+{ Args: { "p_equipment": string,"p_exercise_id": string,"p_load_mode": string,"p_page"?: number,"p_weight_convention": string }; Returns: Json
+                           },
 "exercise_progress":
 { Args: { "p_before"?: string,"p_equipment": string,"p_exercise_id": string,"p_load_mode": string,"p_weight_convention": string }; Returns: Json
                            },
@@ -336,6 +339,9 @@ isOneToOne: false
                            },
 "start_workout":
 { Args: { "p_id": string,"p_plan_revision": number,"p_workout_id": string }; Returns: string
+                           },
+"training_period_stats":
+{ Args: { "p_month": string,"p_timezone": string,"p_week": string }; Returns: Json
                            },
 "weekly_workout_count":
 { Args: { "p_timezone": string }; Returns: number

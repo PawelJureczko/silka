@@ -94,6 +94,7 @@ test('postępy: pełne rekordy, ograniczone wykresy, RLS, strefy i profil', asyn
     })
     await context.test('regularność grupuje tygodnie według strefy; aktywne i porzucone nie liczą się', async () => {
       const before = progressOverviewSchema.parse((await overview(a)).data)
+      const beforeWarsaw = progressOverviewSchema.parse((await overview(a, 'Europe/Warsaw')).data)
       const monday = new Date()
       monday.setUTCHours(0, 0, 0, 0)
       monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7))
@@ -102,7 +103,7 @@ test('postępy: pełne rekordy, ograniczone wykresy, RLS, strefy i profil', asyn
       const warsaw = progressOverviewSchema.parse((await overview(a, 'Europe/Warsaw')).data)
       assert.equal(utc.completedCount, before.completedCount + 1)
       assert.equal(utc.weeks.at(-1).count, before.weeks.at(-1).count)
-      assert.equal(warsaw.weeks.at(-1).count, utc.weeks.at(-1).count + 1)
+      assert.equal(warsaw.weeks.at(-1).count, beforeWarsaw.weeks.at(-1).count + 1)
       assert.equal(utc.weeks.length, 12)
       assert.ok(utc.exercises.some(item => item.weightConvention === 'per_hand'))
     })

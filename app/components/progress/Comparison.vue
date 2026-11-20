@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { fetchComparisonOptions, fetchSessionComparison } from '~/services/training-stats'
-import { compareSessions, recordedStatsSet } from '~/domain/training-stats'
+import { compareSessions, recordedStatsSet, planCompletion, statsVariantKey } from '~/domain/training-stats'
 
 const props = defineProps<{ timezone: string }>()
 const client = usePlanClient()
@@ -14,8 +14,9 @@ const selected = computed(() => options.data.value?.find(row => row.id === selec
 const sessions = await useAsyncData(() => `stats-comparison:${user.value?.id}`, () => selected.value?.source_workout_id ? fetchSessionComparison(client, selected.value.source_workout_id, selected.value.plan_id) : Promise.resolve([]), { lazy: true, watch: [selectedId] })
 const current = computed(() => sessions.data.value?.[0])
 const previous = computed(() => sessions.data.value?.[1] ?? null)
+const completion = computed(() => current.value ? planCompletion(current.value) : null)
 const rows = computed(() => current.value ? compareSessions(current.value, previous.value) : [])
-const removed = computed(() => previous.value?.workout_exercises.filter(item => !rows.value.some(row => row.matched && row.exercise.exercise_id === item.exercise_id)) ?? [])
+const removed = computed(() => previous.value?.workout_exercises.filter(item => !rows.value.some(row => row.matched && statsVariantKey(row.exercise) === statsVariantKey(item))) ?? [])
 const date = (value: string) => new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short', year: 'numeric', timeZone: props.timezone }).format(new Date(value))
 const duration = (start: string, end: string) => Math.max(0, Math.round((Date.parse(end) - Date.parse(start)) / 60000))
 </script>
@@ -118,6 +119,23 @@ const duration = (start: string, end: string) => Math.max(0, Math.round((Date.pa
             </p>
           </div>
         </div>
+        <section
+          v-if="completion"
+          class="border-b border-white/15 py-5"
+        >
+          <h3 class="font-semibold">
+            Wykonanie ostatniej sesji
+          </h3>
+          <p class="mt-3 text-2xl font-bold tabular-nums">
+            {{ completion.completed }} / {{ completion.planned }} <span class="text-sm font-normal text-secondary">zaplanowanych serii roboczych</span>
+          </p>
+          <p class="mt-2 text-sm text-secondary">
+            W zakresie: {{ completion.inRange }} · poniżej: {{ completion.below }} · powyżej: {{ completion.above }}. Dodatkowe wykonane serie: {{ completion.extra }}.
+          </p>
+          <p class="mt-2 text-xs leading-relaxed text-secondary">
+            Planowane serie mają zapisany zakres powtórzeń w sesji. Serie dodatkowe bez zakresu liczymy osobno. Powyżej zakresu nie oznacza automatycznie lepiej; nie oceniamy techniki ani zapasu siły.
+          </p>
+        </section>
         <p
           v-if="!rows.length"
           class="mt-5 text-secondary"
@@ -155,9 +173,9 @@ const duration = (start: string, end: string) => Math.max(0, Math.round((Date.pa
               </p>
               <div class="mt-1 grid grid-cols-2 gap-4">
                 <p class="break-words text-secondary">
-                  {{ recordedStatsSet(set.previous, row.exercise.weight_convention_snapshot) }}
+                  <span class="sr-only">Poprzednio: </span>{{ recordedStatsSet(set.previous, row.exercise.weight_convention_snapshot) }}
                 </p><p class="break-words">
-                  {{ recordedStatsSet(set.current, row.exercise.weight_convention_snapshot) }}
+                  <span class="sr-only">Ostatnio: </span>{{ recordedStatsSet(set.current, row.exercise.weight_convention_snapshot) }}
                 </p>
               </div>
             </div>
@@ -173,6 +191,12 @@ const duration = (start: string, end: string) => Math.max(0, Math.round((Date.pa
           Porównujemy serie robocze po kolei, tylko dla tego samego ćwiczenia, sprzętu i konwencji ciężaru. Zmiana zakresów, techniki lub liczby serii wymaga własnej oceny. Mniejsza asysta oznacza mniej wsparcia.
         </p>
       </template>
+      <p
+        v-else
+        class="mt-5 text-secondary"
+      >
+        Brak ukończonej sesji tej jednostki. Odśwież stronę, aby odczytać aktualną listę.
+      </p>
     </template>
   </section>
 </template>
