@@ -20,6 +20,7 @@ Kolejno dodano: porównanie jednostek, rekordy powtórzeń przy stałym ciężar
 - Kontrast obliczony skryptem: primary/background 19,06:1; secondary/interactive 5,81:1; accent/interactive 11,40:1. Te same tokeny obsługują tekst, krawędzie i focus.
 - Dwie dodatkowe lokalne sesje do testowania paginacji usunięto po weryfikacji ich ID i nazwy. Fikcyjne konta i dane nie trafiły do produkcji.
 - Zrzuty: `/private/tmp/silka-stats-calendar-320.png`, `/private/tmp/silka-stats-error.png`.
+- Wersja `7cd1248` uzyskała Ready na Vercelu. Na kanonicznej domenie popup „Aktualizuj” uruchomił nową PWA. Zweryfikowano trzy widoki z rzeczywistymi danymi bez ich zmiany. Porównanie zachowuje odrębność T-bar i wcześniejszego wariantu, a kalendarz pokazuje A/B/C. W selektorze dopisano datę ostatniej sesji, ponieważ starsze jednostki mogą mieć identyczną nazwę planu i treningu.
 
 ## Delivery Gate: PASS w zakresie zmiany
 

@@ -63,7 +63,7 @@ const duration = (start: string, end: string) => Math.max(0, Math.round((Date.pa
         v-for="option in options.data.value"
         :key="option.id"
         :value="option.id"
-      >{{ option.workout_name_snapshot }} · {{ option.plan_name_snapshot }}</option></select></label>
+      >{{ option.workout_name_snapshot }} · {{ option.plan_name_snapshot }} · ostatnio {{ date(option.started_at) }}</option></select></label>
       <p class="mt-2 text-xs text-secondary">
         Jednostki z ostatnich 60 ukończonych sesji z planu.
       </p>
