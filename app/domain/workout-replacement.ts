@@ -14,7 +14,7 @@ export function replaceWorkoutExercise(value: Workout, id: string, replacement: 
   if (preserve && session.exercises.length >= 20) throw new Error('Trening ma już 20 ćwiczeń. Nie można dodać zamiennika z zachowaniem wykonanych serii.')
   const next: WorkoutExercise = {
     id: preserve ? newId() : exercise.id, exerciseId: replacement.id, name: replacement.name, equipment: replacement.equipment,
-    loadMode: replacement.loadMode, weightConvention: replacement.weightConvention, restSeconds: exercise.restSeconds, notes: '',
+    loadMode: replacement.loadMode, weightConvention: replacement.weightConvention, restSeconds: exercise.restSeconds, notes: '', nextLoadDecision: 'maintain',
     sets: pending.map(set => ({ ...set, id: preserve ? newId() : set.id, plannedWeightKg: null, reps: null, weightKg: null, completedAt: null })),
   }
   if (preserve) {

@@ -1,5 +1,6 @@
 import { workoutSchema } from '#shared/schemas/workouts'
-import type { Workout, WorkoutJournal } from '#shared/schemas/workouts'
+import type { NextLoadDecision, Workout, WorkoutJournal } from '#shared/schemas/workouts'
+import { changeLoadDecision } from '~/domain/load-decision'
 import { acknowledgeWorkout, queueWorkout } from '~/domain/workouts'
 import { readWorkoutJournal, removeWorkoutJournal, withWorkoutLock, writeWorkoutJournal } from '~/services/workout-storage'
 import { deleteWorkout, fetchPreviousSets, fetchWorkout, isWorkoutDeleted, saveWorkout, startWorkout, WorkoutConflict, WorkoutDeleted } from '~/services/workouts'
@@ -51,7 +52,7 @@ export function useWorkoutSync() {
         storageError.value = cause instanceof Error ? cause.message : 'Lokalny zapis jest niedostępny.'
     }
   }
-  async function update(action: (session: Workout) => unknown) {
+  async function queueChange(action: (session: Workout) => unknown, allowCompleted = false) {
     const owner = user.value?.id
     if (!owner || deleting.value)
       return false
@@ -60,7 +61,7 @@ export function useWorkoutSync() {
     try {
       await withWorkoutLock(owner, 'journal', async () => {
         const current = await readWorkoutJournal(owner)
-        if (deleting.value || !current?.session || current.conflict || current.session.status !== 'active')
+        if (deleting.value || !current?.session || current.conflict || (current.session.status !== 'active' && !(allowCompleted && current.session.status === 'completed')))
           throw new Error('Trening nie jest dostępny do edycji.')
         const session = workoutSchema.parse(current.session)
         if (action(session) === false) return
@@ -86,6 +87,9 @@ export function useWorkoutSync() {
       saving.value--
     }
   }
+  const update = (action: (session: Workout) => unknown) => queueChange(action)
+  const updateDecision = (sessionId: string, exerciseId: string, decision: NextLoadDecision, expectedCatalogId: string) =>
+    queueChange(session => changeLoadDecision(session, sessionId, exerciseId, decision, expectedCatalogId), true)
   async function sync() {
     const owner = user.value?.id
     if (!owner || syncing.value || deleting.value || storageError.value || !navigator.onLine)
@@ -283,5 +287,5 @@ export function useWorkoutSync() {
       deleting.value = false
     }
   }
-  return { journal: owned, error, storageError, syncing, saving, deleting, deletedSessionId, loadedOwner, loadLocal, sync, update, begin, adopt, cancelStart, remove, forgetDeleted }
+  return { journal: owned, error, storageError, syncing, saving, deleting, deletedSessionId, loadedOwner, loadLocal, sync, update, updateDecision, begin, adopt, cancelStart, remove, forgetDeleted }
 }

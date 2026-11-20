@@ -170,14 +170,14 @@ isOneToOne: false
                   ]
                 },"workout_exercises": {
                   Row: {
-                    "created_at": string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id": string,"load_mode_snapshot": string,"notes": string,"position": number,"rest_seconds": number,"session_id": string,"updated_at": string,"user_id": string,"weight_convention_snapshot": string
+                    "created_at": string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id": string,"load_mode_snapshot": string,"next_load_decision": string,"notes": string,"position": number,"rest_seconds": number,"session_id": string,"updated_at": string,"user_id": string,"weight_convention_snapshot": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id"?: string,"load_mode_snapshot": string,"notes"?: string,"position": number,"rest_seconds"?: number,"session_id": string,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot": string
+                    "created_at"?: string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id"?: string,"load_mode_snapshot": string,"next_load_decision"?: string,"notes"?: string,"position": number,"rest_seconds"?: number,"session_id": string,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot": string
                   }
                   Update: {
-                    "created_at"?: string,"equipment_snapshot"?: string,"exercise_id"?: string,"exercise_name_snapshot"?: string,"id"?: string,"load_mode_snapshot"?: string,"notes"?: string,"position"?: number,"rest_seconds"?: number,"session_id"?: string,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot"?: string
+                    "created_at"?: string,"equipment_snapshot"?: string,"exercise_id"?: string,"exercise_name_snapshot"?: string,"id"?: string,"load_mode_snapshot"?: string,"next_load_decision"?: string,"notes"?: string,"position"?: number,"rest_seconds"?: number,"session_id"?: string,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot"?: string
                   }
                   Relationships: [
                     {
@@ -312,6 +312,9 @@ isOneToOne: false
         isSetofReturn: false
       } },
 "previous_workout_sets":
+{ Args: { "p_session_id": string }; Returns: Json
+                           },
+"previous_workout_sets_v2":
 { Args: { "p_session_id": string }; Returns: Json
                            },
 "progress_overview":

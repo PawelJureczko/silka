@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { Workout } from '#shared/schemas/workouts'
+import type { NextLoadDecision, Workout } from '#shared/schemas/workouts'
 import { fetchWorkout, WorkoutDeleted } from '~/services/workouts'
 
 export function useWorkoutPage(id: string) {
@@ -49,6 +49,18 @@ export function useWorkoutPage(id: string) {
       loading.value = false
     }
   }
+  async function changeDecision(exerciseId: string, decision: NextLoadDecision) {
+    const found = session.value
+    const exercise = found?.exercises.find(e => e.id === exerciseId)
+    if (!found || !exercise || loading.value || exercise.nextLoadDecision === decision) return
+    try {
+      if (!local.value) await sync.adopt(found)
+      await sync.updateDecision(id, exerciseId, decision, exercise.exerciseId)
+    }
+    catch (cause) {
+      sync.error.value = cause instanceof Error ? cause.message : 'Nie udało się zachować decyzji na następny trening.'
+    }
+  }
   const resume = () => {
     if (document.visibilityState === 'visible')
       void load()
@@ -65,5 +77,5 @@ export function useWorkoutPage(id: string) {
   watch(() => user.value?.id, () => {
     remote.value = null
   })
-  return { ...sync, session, local, deleted, loading, pageError, load }
+  return { ...sync, session, local, deleted, loading, pageError, load, changeDecision }
 }

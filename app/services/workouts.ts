@@ -56,7 +56,7 @@ export async function fetchWorkout(client: Client, id: string) {
     startedAt: data.started_at, finishedAt: data.finished_at, status: data.status, revision: data.revision, restEndsAt: data.rest_ends_at,
     exercises: data.workout_exercises.sort((a, b) => a.position - b.position).map(exercise => ({
       id: exercise.id, exerciseId: exercise.exercise_id, name: exercise.exercise_name_snapshot, equipment: exercise.equipment_snapshot,
-      loadMode: exercise.load_mode_snapshot, weightConvention: exercise.weight_convention_snapshot, restSeconds: exercise.rest_seconds, notes: exercise.notes,
+      loadMode: exercise.load_mode_snapshot, weightConvention: exercise.weight_convention_snapshot, restSeconds: exercise.rest_seconds, notes: exercise.notes, nextLoadDecision: exercise.next_load_decision,
       sets: exercise.workout_sets.sort((a, b) => a.position - b.position).map(set => ({
         id: set.id, setType: set.set_type, plannedRepsMin: set.planned_reps_min, plannedRepsMax: set.planned_reps_max, plannedWeightKg: set.planned_weight_kg,
         reps: set.reps, weightKg: set.weight_kg, status: set.status, completedAt: set.completed_at,
@@ -65,7 +65,8 @@ export async function fetchWorkout(client: Client, id: string) {
   })
 }
 export async function fetchPreviousSets(client: Client, id: string) {
-  const { data, error } = await client.rpc('previous_workout_sets', { p_session_id: id }).abortSignal(AbortSignal.timeout(12000))
+  let { data, error } = await client.rpc('previous_workout_sets_v2', { p_session_id: id }).abortSignal(AbortSignal.timeout(12000))
+  if (error?.code === 'PGRST202') ({ data, error } = await client.rpc('previous_workout_sets', { p_session_id: id }).abortSignal(AbortSignal.timeout(12000)))
   if (error) throw new Error('Nie udało się pobrać poprzednich wyników.')
   return previousSetsSchema.parse(data)
 }

@@ -3,6 +3,8 @@ import { weightSchema } from './plans.ts'
 
 const instant = z.iso.datetime({ offset: true })
 const reps = z.number().int().min(1).max(100).nullable()
+export const nextLoadDecisionSchema = z.enum(['progress', 'maintain', 'reduce'])
+export type NextLoadDecision = z.infer<typeof nextLoadDecisionSchema>
 export const workoutSetSchema = z.strictObject({
   id: z.uuid(),
   setType: z.enum(['working', 'warmup']),
@@ -19,6 +21,7 @@ export const workoutExerciseSchema = z.strictObject({
   loadMode: z.enum(['external', 'bodyweight', 'assisted']),
   weightConvention: z.enum(['total', 'per_hand', 'bodyweight', 'assistance']),
   restSeconds: z.number().int().min(0).max(900), notes: z.string().max(2000),
+  nextLoadDecision: nextLoadDecisionSchema.default('maintain'),
   sets: z.array(workoutSetSchema).min(1).max(40),
 }).refine(exercise => exercise.loadMode === 'bodyweight' || exercise.sets.every(set => set.status !== 'completed' || set.weightKg !== null), 'Wykonana seria wymaga ciężaru.')
 export const workoutSchema = z.strictObject({
@@ -30,13 +33,14 @@ export const workoutSchema = z.strictObject({
 })
 export const workoutPayloadSchema = z.strictObject({
   status: z.enum(['active', 'completed', 'abandoned']), finishedAt: instant.nullable(), restEndsAt: instant.nullable(),
-  exercises: z.array(z.strictObject({ id: z.uuid(), exerciseId: z.uuid().optional(), restSeconds: z.number().int().min(0).max(900).optional(), sets: z.array(z.strictObject({
+  exercises: z.array(z.strictObject({ id: z.uuid(), exerciseId: z.uuid().optional(), restSeconds: z.number().int().min(0).max(900).optional(), nextLoadDecision: nextLoadDecisionSchema.optional(), sets: z.array(z.strictObject({
     id: z.uuid(), reps, weightKg: weightSchema.nullable(), status: z.enum(['pending', 'completed', 'skipped']), completedAt: instant.nullable(),
     setType: z.enum(['working', 'warmup']).optional(), plannedRepsMin: reps.optional(), plannedRepsMax: reps.optional(), plannedWeightKg: weightSchema.nullable().optional(),
   })).min(1).max(40) })).min(1).max(20),
 })
 export const previousSetsSchema = z.array(z.strictObject({
   workoutExerciseId: z.uuid(), startedAt: instant,
+  nextLoadDecision: nextLoadDecisionSchema.default('maintain'),
   sets: z.array(z.strictObject({ position: z.number().int().min(0), setType: z.enum(['working', 'warmup']), reps: z.number().int().positive(), weightKg: weightSchema.nullable() })),
 }))
 export const workoutJournalSchema = z.strictObject({

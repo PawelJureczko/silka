@@ -11,7 +11,7 @@ const props = defineProps<{
   id: string
 }>()
 const profile = useProfile()
-const { session, local, deleted, loading, pageError, error, storageError, syncing, saving, deleting, update, sync, load, cancelStart, remove } = useWorkoutPage(props.id)
+const { session, local, deleted, loading, pageError, error, storageError, syncing, saving, deleting, update, sync, load, cancelStart, remove, changeDecision } = useWorkoutPage(props.id)
 const invalid = ref<Record<string, boolean>>({})
 const finishDialog = ref<'completed' | 'abandoned' | null>(null)
 const discardDialog = ref(false)
@@ -28,6 +28,7 @@ const nextSetNotice = ref('')
 const replacementExercise = computed(() => session.value?.exercises.find(item => item.id === replacementId.value))
 const immersive = computed(() => session.value?.status === 'active' && focusMode.value)
 const editable = computed(() => session.value?.status === 'active' && Boolean(local.value) && !local.value?.conflict && !storageError.value && !loading.value && !deleting.value)
+const decisionEditable = computed(() => session.value?.status !== 'abandoned' && !local.value?.conflict && !storageError.value && !loading.value && !deleting.value && invalidCount.value === 0)
 const invalidCount = computed(() => Object.values(invalid.value).filter(Boolean).length)
 const summary = computed(() => session.value ? workoutSummary(session.value) : null)
 const canCompleteRest = computed(() => editable.value && saving.value === 0 && !finishDialog.value && !discardDialog.value && !deleteDialog.value && !replacementId.value)
@@ -267,8 +268,10 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
           :session="session"
           :previous="local?.previous ?? []"
           :editable="editable"
+          :decision-editable="decisionEditable"
           :busy="saving > 0 || invalidCount > 0"
           @change="change"
+          @decision="changeDecision"
           @validity="(id, value) => invalid[id] = value"
           @stop="timer(false)"
           @extend="timer(true)"
@@ -300,7 +303,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
             v-if="local?.queue.length"
             class="mt-4 text-sm text-accent"
           >
-            Podsumowanie jest zapisane lokalnie. Zakończenie na koncie wymaga synchronizacji.
+            Zmiany w tej sesji są zapisane lokalnie i czekają na synchronizację.
           </p>
         </section>
         <div
@@ -328,6 +331,10 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
               </div>
             </div>
             <ExercisesGuideLink :name="exercise.name" />
+            <WorkoutPreviousDecision
+              v-if="session.status === 'active'"
+              :previous="local?.previous.find(item => item.workoutExerciseId === exercise.id)"
+            />
             <UiBaseButton
               v-if="editable && exercise.sets.some(set => set.status === 'pending')"
               variant="secondary"
@@ -378,6 +385,14 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
             >
               + Dodaj serię
             </UiBaseButton>
+            <WorkoutLoadDecision
+              :name="exercise.name"
+              :value="exercise.nextLoadDecision"
+              :disabled="!decisionEditable"
+              :bodyweight="exercise.loadMode === 'bodyweight'"
+              :assisted="exercise.loadMode === 'assisted'"
+              @change="changeDecision(exercise.id, $event)"
+            />
           </section>
         </div>
         <div

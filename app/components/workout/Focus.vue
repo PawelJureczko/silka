@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Workout, WorkoutSet, PreviousSets } from '#shared/schemas/workouts'
+import type { Workout, WorkoutSet, PreviousSets, NextLoadDecision } from '#shared/schemas/workouts'
 import { nextWorkoutSet, previousRestSets, recordedSetLabel } from '~/domain/workout-focus'
 
-const props = defineProps<{ session: Workout, previous: PreviousSets, editable: boolean, busy: boolean }>()
-defineEmits<{ change: [exerciseId: string, set: WorkoutSet], validity: [id: string, invalid: boolean], stop: [], extend: [], finish: [], list: [], replace: [exerciseId: string] }>()
+const props = defineProps<{ session: Workout, previous: PreviousSets, editable: boolean, decisionEditable: boolean, busy: boolean }>()
+defineEmits<{ change: [exerciseId: string, set: WorkoutSet], decision: [exerciseId: string, decision: NextLoadDecision], validity: [id: string, invalid: boolean], stop: [], extend: [], finish: [], list: [], replace: [exerciseId: string] }>()
 const selectedId = defineModel<string | null>('selectedId', { default: null })
 const selectionOpen = ref(false)
 const target = computed(() => nextWorkoutSet(props.session, selectedId.value))
@@ -42,6 +42,7 @@ function choose(id: string) {
         {{ target.exercise.equipment }} · {{ ({ total: 'kg łącznie', per_hand: 'kg na rękę', bodyweight: 'masa ciała + dodatkowe kg', assistance: 'kg asysty' })[target.exercise.weightConvention] }}
       </p>
       <ExercisesGuideLink :name="target.exercise.name" />
+      <WorkoutPreviousDecision :previous="previous.find(item => item.workoutExerciseId === target?.exercise.id)" />
       <button
         type="button"
         class="mt-2 min-h-11 text-sm text-secondary underline underline-offset-4"
@@ -116,6 +117,14 @@ function choose(id: string) {
           @validity="(invalid, id) => $emit('validity', id, invalid)"
         />
       </div>
+      <WorkoutLoadDecision
+        :name="target.exercise.name"
+        :value="target.exercise.nextLoadDecision"
+        :disabled="!decisionEditable"
+        :bodyweight="target.exercise.loadMode === 'bodyweight'"
+        :assisted="target.exercise.loadMode === 'assisted'"
+        @change="$emit('decision', target.exercise.id, $event)"
+      />
       <UiBaseButton
         variant="secondary"
         class="mt-5 w-full"
