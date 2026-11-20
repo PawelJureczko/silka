@@ -157,6 +157,10 @@ function minutes(start: string, end: string) {
         :overview="overview"
         :target="target"
       />
+      <LazyProgressComparison
+        class="progress-history"
+        :timezone="timezone"
+      />
       <section class="progress-history ledger-section min-w-0">
         <h2 class="text-lg font-semibold">
           Historia treningów

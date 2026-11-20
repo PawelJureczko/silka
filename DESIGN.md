@@ -51,6 +51,8 @@ ENERGY 2 / RHYTHM 2 / MOTION 1. Energia wynika z typografii i wyniku, rytm z ró
 
 ## Reflow i obsługa
 
+Porównanie jednostek zestawia dwie sesje w dwóch krótkich kolumnach pod numerowanym ćwiczeniem. Stała kolejność „Poprzednio / Ostatnio” pozwala odczytać konkretne serie; długie opisy zawijają się również na telefonie. Zachowujemy ENERGY 2 / RHYTHM 2 / MOTION 1, istniejącą paletę i typografię dziennika.
+
 - Telefon: jeden przepływ treści, dolna nawigacja z czterema podpisanymi pozycjami, główne kontrolki co najmniej 44 × 44 px.
 - Od 700 px: start i postępy rozdzielają treści na dwie kolumny; długa historia zajmuje całą szerokość.
 - Od 1000 px: nawigacja mieści się w nagłówku; wiersz planu ma oddzielną kolumnę akcji. Treść zachowuje maksymalną szerokość.

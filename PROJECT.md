@@ -157,6 +157,8 @@ Ostatnia rozstrzygnięta seria pokazuje przejście do podsumowania, bez automaty
 
 ### Postępy
 
+Rozbudowa statystyk przebiega kolejno: porównanie jednostek, rekordy powtórzeń przy stałym ciężarze, historia decyzji, wykonanie planowanych serii, podsumowania miesięczne, kalendarz i tygodniowe serie na partie. Porównanie pokazuje dwie ostatnie ukończone sesje tej samej jednostki (`source_workout_id`) i planu. Wybór jednostek obejmuje ostatnie 60 sesji z planu. Warianty dopasowujemy po ID katalogowym, sprzęcie, trybie i konwencji obciążenia; powtórzony wariant ma jawny komunikat niejednoznaczności. Serie robocze zestawiamy w kolejności, zachowując braki, pominięcia i różną liczbę serii. Puste sesje pozostają widoczne. Nie wyprowadzamy oceny progresu z samego tonażu ani czasu sesji. Odczyt korzysta z istniejącego RLS, bez zmiany historii.
+
 Historia sesji, szczegóły treningu, progresja konkretnego ćwiczenia, rekordy i regularność. Porównania obejmują zgodny sposób liczenia obciążenia i sprzęt. Ewentualne szacunki, np. szacowane 1RM, muszą być wyraźnie oznaczone.
 
 ### Profil
