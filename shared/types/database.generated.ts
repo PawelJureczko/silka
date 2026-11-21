@@ -170,14 +170,14 @@ isOneToOne: false
                   ]
                 },"workout_exercises": {
                   Row: {
-                    "created_at": string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id": string,"load_mode_snapshot": string,"next_load_decision": string,"notes": string,"position": number,"rest_seconds": number,"session_id": string,"updated_at": string,"user_id": string,"weight_convention_snapshot": string
+                    "created_at": string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id": string,"load_mode_snapshot": string,"next_load_decision": string,"notes": string,"position": number,"rest_seconds": number,"session_id": string,"source_plan_exercise_id": string | null,"updated_at": string,"user_id": string,"weight_convention_snapshot": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id"?: string,"load_mode_snapshot": string,"next_load_decision"?: string,"notes"?: string,"position": number,"rest_seconds"?: number,"session_id": string,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot": string
+                    "created_at"?: string,"equipment_snapshot": string,"exercise_id": string,"exercise_name_snapshot": string,"id"?: string,"load_mode_snapshot": string,"next_load_decision"?: string,"notes"?: string,"position": number,"rest_seconds"?: number,"session_id": string,"source_plan_exercise_id"?: string | null,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot": string
                   }
                   Update: {
-                    "created_at"?: string,"equipment_snapshot"?: string,"exercise_id"?: string,"exercise_name_snapshot"?: string,"id"?: string,"load_mode_snapshot"?: string,"next_load_decision"?: string,"notes"?: string,"position"?: number,"rest_seconds"?: number,"session_id"?: string,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot"?: string
+                    "created_at"?: string,"equipment_snapshot"?: string,"exercise_id"?: string,"exercise_name_snapshot"?: string,"id"?: string,"load_mode_snapshot"?: string,"next_load_decision"?: string,"notes"?: string,"position"?: number,"rest_seconds"?: number,"session_id"?: string,"source_plan_exercise_id"?: string | null,"updated_at"?: string,"user_id"?: string,"weight_convention_snapshot"?: string
                   }
                   Relationships: [
                     {
@@ -345,6 +345,9 @@ isOneToOne: false
                            },
 "weekly_workout_count":
 { Args: { "p_timezone": string }; Returns: number
+                           },
+"workout_plan_replacement_context":
+{ Args: { "p_exercise_id": string,"p_session_id": string }; Returns: Json
                            }
           }
           Enums: {

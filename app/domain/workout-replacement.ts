@@ -15,6 +15,7 @@ export function replaceWorkoutExercise(value: Workout, id: string, replacement: 
   const next: WorkoutExercise = {
     id: preserve ? newId() : exercise.id, exerciseId: replacement.id, name: replacement.name, equipment: replacement.equipment,
     loadMode: replacement.loadMode, weightConvention: replacement.weightConvention, restSeconds: exercise.restSeconds, notes: '', nextLoadDecision: 'maintain',
+    replacesExerciseId: preserve ? exercise.id : exercise.replacesExerciseId,
     sets: pending.map(set => ({ ...set, id: preserve ? newId() : set.id, plannedWeightKg: null, reps: null, weightKg: null, completedAt: null })),
   }
   if (preserve) {

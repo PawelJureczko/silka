@@ -1,19 +1,20 @@
 import { workoutPayloadSchema, workoutSchema } from '../../shared/schemas/workouts.ts'
-import type { Workout, WorkoutJournal, WorkoutPayload } from '../../shared/schemas/workouts.ts'
+import type { PlanReplacement, Workout, WorkoutJournal, WorkoutPayload } from '../../shared/schemas/workouts.ts'
 
 export function workoutPayload(session: Workout): WorkoutPayload {
   return workoutPayloadSchema.parse({ status: session.status, finishedAt: session.finishedAt, restEndsAt: session.restEndsAt,
-    exercises: session.exercises.map(exercise => ({ id: exercise.id, exerciseId: exercise.exerciseId, restSeconds: exercise.restSeconds, nextLoadDecision: exercise.nextLoadDecision, sets: exercise.sets.map(set => ({
+    exercises: session.exercises.map(exercise => ({ id: exercise.id, exerciseId: exercise.exerciseId, ...(exercise.replacesExerciseId ? { replacesExerciseId: exercise.replacesExerciseId } : {}), restSeconds: exercise.restSeconds, nextLoadDecision: exercise.nextLoadDecision, sets: exercise.sets.map(set => ({
       id: set.id, reps: set.reps, weightKg: set.weightKg, status: set.status, completedAt: set.completedAt,
       setType: set.setType, plannedRepsMin: set.plannedRepsMin, plannedRepsMax: set.plannedRepsMax, plannedWeightKg: set.plannedWeightKg,
     })) })),
   })
 }
-export function queueWorkout(journal: WorkoutJournal, session: Workout, operationId: string): WorkoutJournal {
+export function queueWorkout(journal: WorkoutJournal, session: Workout, operationId: string, planReplacement?: PlanReplacement): WorkoutJournal {
   const next = { ...journal, session: workoutSchema.parse(session), queue: [...journal.queue] }
-  const operation = { operationId, baseRevision: null, payload: workoutPayload(session) }
+  const operation = { operationId, baseRevision: null, payload: workoutPayloadSchema.parse({ ...workoutPayload(session), ...(planReplacement ? { planReplacement } : {}) }) }
   // Only snapshots never sent to the server may be compacted. Each contains all prior changes.
-  if (next.queue.at(-1)?.baseRevision === null) next.queue.pop()
+  // Approved plan changes are barriers: a later workout snapshot cannot replace their intent.
+  if (next.queue.at(-1)?.baseRevision === null && !next.queue.at(-1)?.payload.planReplacement) next.queue.pop()
   next.queue.push(operation)
   if (next.queue.length > 100) throw new Error('Kolejka jest pełna. Połącz się z internetem przed dalszą edycją.')
   return next

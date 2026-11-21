@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import type { WorkoutSet } from '#shared/schemas/workouts'
+import type { PlanReplacementContext, WorkoutSet } from '#shared/schemas/workouts'
 import { exerciseSchema } from '#shared/schemas/plans'
 import type { CatalogExercise } from '~/services/plans'
 import { finishWorkout, workoutSummary } from '~/domain/workouts'
 import { replaceWorkoutExercise } from '~/domain/workout-replacement'
 import { signalNextSet } from '~/services/workout-feedback'
 import { downloadPlanExport } from '~/services/plan-transfer'
+import { fetchPlanReplacementContext } from '~/services/workouts'
 
 const props = defineProps<{
   id: string
 }>()
 const profile = useProfile()
+const client = usePlanClient()
+const { user } = useAuthState()
 const { session, local, deleted, loading, pageError, error, storageError, syncing, saving, deleting, update, sync, load, cancelStart, remove, changeDecision } = useWorkoutPage(props.id)
 const invalid = ref<Record<string, boolean>>({})
 const finishDialog = ref<'completed' | 'abandoned' | null>(null)
@@ -23,6 +26,11 @@ const replacementId = ref<string | null>(null)
 const replacementBaseId = ref<string | null>(null)
 const replacement = ref<CatalogExercise | null>(null)
 const replacementError = ref('')
+const replacementScope = ref<'session' | 'plan' | null>(null)
+const replacementPlan = ref<PlanReplacementContext | null>(null)
+const replacementPlanLoading = ref(false)
+const replacementPlanError = ref('')
+let replacementRequest = 0
 const replacing = ref(false)
 const nextSetNotice = ref('')
 const replacementExercise = computed(() => session.value?.exercises.find(item => item.id === replacementId.value))
@@ -51,11 +59,51 @@ function openReplacement(id: string) {
   replacementBaseId.value = session.value?.exercises.find(item => item.id === id)?.exerciseId ?? null
   replacement.value = null
   replacementError.value = ''
+  replacementScope.value = null
+  replacementPlan.value = null
+  void loadReplacementPlan()
 }
+async function loadReplacementPlan() {
+  const request = ++replacementRequest
+  const owner = user.value?.id
+  const exerciseId = replacementId.value
+  replacementPlan.value = null
+  replacementPlanError.value = ''
+  replacementPlanLoading.value = false
+  if (!exerciseId) return
+  if (local.value?.start || local.value?.queue.length || syncing.value || saving.value) {
+    replacementPlanError.value = 'Najpierw zsynchronizuj trening, aby zmienić również plan.'
+    return
+  }
+  if (!navigator.onLine) {
+    replacementPlanError.value = 'Zmiana planu wymaga odczytu jego aktualnej wersji. Połącz się z internetem lub zmień tylko ten trening.'
+    return
+  }
+  replacementPlanLoading.value = true
+  try {
+    const context = await fetchPlanReplacementContext(client, props.id, exerciseId)
+    if (request !== replacementRequest || user.value?.id !== owner) return
+    replacementPlan.value = context
+    if (!context) replacementPlanError.value = 'Nie można powiązać tej pozycji z aktualnym planem. Możesz zmienić tylko tę sesję; stałą zmianę wprowadź w edytorze planu.'
+  }
+  catch (cause) {
+    if (request === replacementRequest) replacementPlanError.value = cause instanceof Error ? cause.message : 'Nie udało się sprawdzić planu.'
+  }
+  finally {
+    if (request === replacementRequest) replacementPlanLoading.value = false
+  }
+}
+onBeforeUnmount(() => {
+  replacementRequest++
+})
 function closeReplacement() {
   if (replacing.value) return
+  replacementRequest++
   replacementId.value = null
   replacement.value = null
+  replacementScope.value = null
+  replacementPlan.value = null
+  replacementPlanLoading.value = false
 }
 async function confirmReplacement() {
   if (!replacement.value || !replacementId.value || !editable.value || replacing.value) return
@@ -64,7 +112,13 @@ async function confirmReplacement() {
   const chosen = replacement.value
   const exerciseId = replacementId.value
   const baseId = replacementBaseId.value
+  const planContext = replacementScope.value === 'plan' ? replacementPlan.value : null
+  if (!replacementScope.value || (replacementScope.value === 'plan' && !planContext)) {
+    replacing.value = false
+    return
+  }
   let target: string | null = null
+  let targetExerciseId = exerciseId
   const saved = await update((value) => {
     if (value.exercises.find(item => item.id === exerciseId)?.exerciseId !== baseId) throw new Error('Ćwiczenie zmieniło się podczas wyboru. Otwórz katalog ponownie.')
     const descriptor = exerciseSchema.parse({ name: chosen.name, equipment: chosen.equipment, muscleGroup: chosen.muscle_group, loadMode: chosen.load_mode, weightConvention: chosen.weight_convention, weightIncrementKg: chosen.weight_increment_kg })
@@ -73,7 +127,16 @@ async function confirmReplacement() {
     }, () => crypto.randomUUID())
     Object.assign(value, result.session)
     target = result.selectedSetId
-  })
+    const targetExercise = result.session.exercises.find(item => item.sets.some(set => set.id === target))
+    if (!targetExercise) throw new Error('Nie udało się wskazać zamiennika.')
+    targetExerciseId = targetExercise.id
+  }, planContext
+    ? () => ({
+        planId: planContext.planId, planRevision: planContext.planRevision, planExerciseId: planContext.planExerciseId,
+        workoutExerciseId: exerciseId, expectedExerciseId: planContext.expectedExerciseId,
+        replacementExerciseId: chosen.id, replacementWorkoutExerciseId: targetExerciseId,
+      })
+    : undefined)
   replacing.value = false
   if (saved) {
     selectedSetId.value = target
@@ -81,7 +144,19 @@ async function confirmReplacement() {
   }
   else replacementError.value = error.value || 'Nie udało się zapisać podmiany lokalnie. Spróbuj ponownie.'
 }
-const saveLabel = computed(() => storageError.value ? 'Brak lokalnego zapisu' : saving.value ? 'Zapisywanie lokalnie…' : local.value?.conflict ? 'Konflikt · szkic zachowany lokalnie' : local.value?.start ? 'Oczekuje na rozpoczęcie na koncie' : !session.value ? 'Brak odczytanego treningu' : local.value?.queue.length ? syncing.value ? 'Zapisano lokalnie · synchronizacja…' : 'Zapisano lokalnie · oczekuje na synchronizację' : 'Zapisano na koncie')
+const pendingPlanChange = computed(() => local.value?.queue.some(operation => operation.payload.planReplacement))
+const saveLabel = computed(() => {
+  if (storageError.value) return 'Brak lokalnego zapisu'
+  if (saving.value) return 'Zapisywanie lokalnie…'
+  if (local.value?.conflict) return 'Konflikt · szkic zachowany lokalnie'
+  if (local.value?.start) return 'Oczekuje na rozpoczęcie na koncie'
+  if (!session.value) return 'Brak odczytanego treningu'
+  if (local.value?.queue.length) {
+    if (pendingPlanChange.value) return syncing.value ? 'Trening i plan zapisane lokalnie · synchronizacja…' : 'Zmiana treningu i planu czeka na synchronizację'
+    return syncing.value ? 'Zapisano lokalnie · synchronizacja…' : 'Zapisano lokalnie · oczekuje na synchronizację'
+  }
+  return 'Zapisano na koncie'
+})
 function change(exerciseId: string, next: WorkoutSet) {
   void update((value) => {
     const exercise = value.exercises.find(item => item.id === exerciseId)
@@ -415,7 +490,63 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
         </div>
       </template>
       <UiDialog
-        v-if="replacementId && !replacement"
+        v-if="replacementId && !replacementScope"
+        title="Gdzie podmienić ćwiczenie?"
+        @close="closeReplacement"
+      >
+        <p class="text-sm text-secondary">
+          {{ replacementExercise?.name }}
+        </p>
+        <div class="mt-5 space-y-3">
+          <UiBaseButton
+            variant="secondary"
+            class="w-full flex-col items-start gap-2 whitespace-normal py-4 text-left hover:border-accent hover:bg-interactive active:bg-interactive"
+            @click="replacementScope = 'session'"
+          >
+            <span class="font-semibold">Tylko ten trening</span><span class="text-sm font-normal text-secondary">Jednorazowy zamiennik. Następna sesja będzie zgodna z planem.</span>
+          </UiBaseButton>
+          <UiBaseButton
+            variant="secondary"
+            class="w-full flex-col items-start gap-2 whitespace-normal py-4 text-left hover:border-accent hover:bg-interactive active:bg-interactive"
+            :disabled="!replacementPlan || replacementPlanLoading || Boolean(local?.queue.length) || syncing || saving > 0"
+            @click="replacementScope = 'plan'"
+          >
+            <span class="font-semibold">Ten trening i mój plan</span><span class="text-sm font-normal text-secondary">Zamiennik zostanie w tej pozycji planu na przyszłe treningi. Zmiana dotyczy wyłącznie Twojego konta.</span>
+          </UiBaseButton>
+        </div>
+        <p
+          v-if="replacementPlanLoading"
+          role="status"
+          class="mt-4 text-sm text-secondary"
+        >
+          Sprawdzanie Twojego planu…
+        </p>
+        <p
+          v-if="replacementPlan"
+          class="mt-4 text-sm text-secondary"
+        >
+          Pozycja w planie: {{ replacementPlan.planExerciseName }} · {{ replacementPlan.workoutName }} · {{ replacementPlan.planName }}.
+        </p>
+        <div
+          v-if="replacementPlanError"
+          class="mt-4 space-y-3"
+        >
+          <p
+            role="status"
+            class="text-sm text-secondary"
+          >
+            {{ replacementPlanError }}
+          </p><UiBaseButton
+            variant="secondary"
+            :busy="replacementPlanLoading"
+            @click="loadReplacementPlan"
+          >
+            Sprawdź ponownie
+          </UiBaseButton>
+        </div>
+      </UiDialog>
+      <UiDialog
+        v-if="replacementId && replacementScope && !replacement"
         title="Podmień ćwiczenie"
         @close="closeReplacement"
       >
@@ -428,7 +559,7 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
         />
       </UiDialog>
       <UiDialog
-        v-if="replacementId && replacement"
+        v-if="replacementId && replacementScope && replacement"
         title="Potwierdź podmianę"
         :busy="replacing"
         @close="closeReplacement"
@@ -440,7 +571,13 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
           {{ replacement.name }}
         </p>
         <p class="mt-4 text-sm leading-relaxed text-secondary">
-          Zmienisz ćwiczenie tylko w tym treningu. Pozostaną zakresy powtórzeń i czas przerwy. Wpisz ciężar dla nowego ćwiczenia; poprzednie obciążenia i wskazówki nie będą przenoszone.
+          {{ replacementScope === 'plan' ? 'Zmienisz ćwiczenie w tej sesji i w tej pozycji swojego planu. Zmiana nie dotyczy kont innych osób.' : 'Zmienisz ćwiczenie tylko w tym treningu.' }} Pozostaną zakresy powtórzeń i czas przerwy. Wpisz ciężar dla nowego ćwiczenia; poprzednie obciążenia i wskazówki nie będą przenoszone.
+        </p>
+        <p
+          v-if="replacementScope === 'plan' && replacementPlan"
+          class="mt-3 text-sm text-secondary"
+        >
+          W Twoim planie: {{ replacementPlan.planExerciseName }} · {{ replacementPlan.workoutName }} · {{ replacementPlan.planName }}. Zapis sesji i planu nastąpi razem po udanej synchronizacji. Poprzednie treningi zachowają swoje wyniki.
         </p>
         <p
           v-if="replacementExercise?.sets.some(set => set.status !== 'pending')"
@@ -461,7 +598,14 @@ useHead({ title: () => `${session.value?.workoutName ?? 'Trening'} — Siłka` }
             :disabled="!editable || saving > 0 || replacement.id === replacementExercise?.exerciseId"
             @click="confirmReplacement"
           >
-            Podmień ćwiczenie
+            {{ replacementScope === 'plan' ? 'Podmień w treningu i moim planie' : 'Podmień ćwiczenie' }}
+          </UiBaseButton>
+          <UiBaseButton
+            variant="secondary"
+            :disabled="replacing"
+            @click="replacementScope = null"
+          >
+            Zmień zakres
           </UiBaseButton>
           <UiBaseButton
             variant="secondary"

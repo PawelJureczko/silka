@@ -1,11 +1,12 @@
 import { workoutSchema } from '#shared/schemas/workouts'
-import type { NextLoadDecision, Workout, WorkoutJournal } from '#shared/schemas/workouts'
+import type { NextLoadDecision, PlanReplacement, Workout, WorkoutJournal } from '#shared/schemas/workouts'
 import { changeLoadDecision } from '~/domain/load-decision'
 import { acknowledgeWorkout, queueWorkout } from '~/domain/workouts'
 import { readWorkoutJournal, removeWorkoutJournal, withWorkoutLock, writeWorkoutJournal } from '~/services/workout-storage'
 import { deleteWorkout, fetchPreviousSets, fetchWorkout, isWorkoutDeleted, saveWorkout, startWorkout, WorkoutConflict, WorkoutDeleted } from '~/services/workouts'
 
 export function useWorkoutSync() {
+  const nuxtApp = useNuxtApp()
   const { user } = useAuthState()
   const client = usePlanClient()
   const journal = useState<WorkoutJournal | null>('workout:journal', () => null)
@@ -52,7 +53,7 @@ export function useWorkoutSync() {
         storageError.value = cause instanceof Error ? cause.message : 'Lokalny zapis jest niedostępny.'
     }
   }
-  async function queueChange(action: (session: Workout) => unknown, allowCompleted = false) {
+  async function queueChange(action: (session: Workout) => unknown, allowCompleted = false, planReplacement?: (session: Workout) => PlanReplacement) {
     const owner = user.value?.id
     if (!owner || deleting.value)
       return false
@@ -65,7 +66,8 @@ export function useWorkoutSync() {
           throw new Error('Trening nie jest dostępny do edycji.')
         const session = workoutSchema.parse(current.session)
         if (action(session) === false) return
-        const next = queueWorkout(current, session, crypto.randomUUID())
+        if (planReplacement && (current.start || current.queue.length)) throw new Error('Najpierw zsynchronizuj trening, a potem ponownie wybierz zmianę planu.')
+        const next = queueWorkout(current, session, crypto.randomUUID(), planReplacement?.(session))
         next.previous = current.previous.filter((previous) => {
           const before = current.session?.exercises.find(item => item.id === previous.workoutExerciseId)
           return session.exercises.some(item => item.id === previous.workoutExerciseId && item.exerciseId === before?.exerciseId)
@@ -87,7 +89,7 @@ export function useWorkoutSync() {
       saving.value--
     }
   }
-  const update = (action: (session: Workout) => unknown) => queueChange(action)
+  const update = (action: (session: Workout) => unknown, planReplacement?: (session: Workout) => PlanReplacement) => queueChange(action, false, planReplacement)
   const updateDecision = (sessionId: string, exerciseId: string, decision: NextLoadDecision, expectedCatalogId: string) =>
     queueChange(session => changeLoadDecision(session, sessionId, exerciseId, decision, expectedCatalogId), true)
   async function sync() {
@@ -145,6 +147,9 @@ export function useWorkoutSync() {
             if (latest?.sessionId === current?.sessionId)
               await store(acknowledgeWorkout(latest, head.operationId, revision))
           })
+          if (head.payload.planReplacement && user.value?.id === owner) {
+            nuxtApp.runWithContext(() => clearNuxtData(key => key.startsWith(`plans:${owner}:`) || key === `workout-dashboard:${owner}` || key === `ai-start:${owner}`))
+          }
         }
       })
       if (user.value?.id === owner)

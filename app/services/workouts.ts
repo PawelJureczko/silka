@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '#shared/types/database.generated'
-import { previousSetsSchema, workoutSchema } from '../../shared/schemas/workouts.ts'
+import { planReplacementContextSchema, previousSetsSchema, workoutSchema } from '../../shared/schemas/workouts.ts'
 import type { WorkoutPayload } from '#shared/schemas/workouts'
 import { nextWorkoutInSequence } from '../domain/workout-sequence.ts'
 
@@ -43,9 +43,15 @@ export async function startWorkout(client: Client, id: string, workoutId: string
 export async function saveWorkout(client: Client, id: string, revision: number, operationId: string, payload: WorkoutPayload) {
   const { data, error } = await client.rpc('save_workout', { p_id: id, p_base_revision: revision, p_operation_id: operationId, p_payload: payload }).abortSignal(AbortSignal.timeout(12000))
   if (error?.code === '42501' && await isWorkoutDeleted(client, id)) throw new WorkoutDeleted(id)
+  if (error?.code === 'PT412') throw new WorkoutConflict('Plan zmienił się od wyboru podmiany. Nie zapisano ani zmiany planu, ani tej operacji treningu. Szkic jest zachowany lokalnie. Odczytaj wersję z konta przed ponowną podmianą.')
   checkError(error)
   if (data === null) throw new Error('Brak potwierdzenia zapisu. Ponów synchronizację.')
   return data
+}
+export async function fetchPlanReplacementContext(client: Client, sessionId: string, exerciseId: string) {
+  const { data, error } = await client.rpc('workout_plan_replacement_context', { p_session_id: sessionId, p_exercise_id: exerciseId }).abortSignal(AbortSignal.timeout(12000))
+  if (error) throw new Error('Nie udało się sprawdzić planu. Zmiana samej sesji jest nadal dostępna; spróbuj ponownie po odzyskaniu połączenia.')
+  return planReplacementContextSchema.nullable().parse(data)
 }
 export async function fetchWorkout(client: Client, id: string) {
   const { data, error } = await client.from('workout_sessions').select('*,workout_exercises(*,workout_sets(*))').eq('id', id).abortSignal(AbortSignal.timeout(12000)).maybeSingle()

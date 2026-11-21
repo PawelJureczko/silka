@@ -67,3 +67,29 @@ test('kolejka utrwala podmianę wraz z wynikami i zachowuje odczyt starszego szk
   })
   assert.equal(workoutJournalSchema.safeParse({ ...journal, queue: [{ operationId: randomUUID(), baseRevision: 1, payload: legacy }] }).success, true)
 })
+
+test('zamiar zmiany planu przeżywa odświeżenie i kompresję późniejszych zapisów offline', () => {
+  const original = makeSession()
+  const journal = { schemaVersion: 1, userId: original.userId, sessionId: original.id, session: original, start: null, serverRevision: 1, previous: [], queue: [], conflict: false }
+  const next = replaceWorkoutExercise(original, original.exercises[0].id, replacement, randomUUID)
+  const intent = { planId: randomUUID(), planRevision: 3, planExerciseId: randomUUID(), workoutExerciseId: original.exercises[0].id, expectedExerciseId: original.exercises[0].exerciseId, replacementExerciseId: replacement.id, replacementWorkoutExerciseId: next.session.exercises[0].id }
+  let queued = queueWorkout(journal, next.session, randomUUID(), intent)
+  const firstId = queued.queue[0].operationId
+  queued = queueWorkout(queued, next.session, randomUUID())
+  queued = queueWorkout(queued, next.session, randomUUID())
+  assert.equal(queued.queue.length, 2)
+  assert.equal(queued.queue[0].operationId, firstId)
+  assert.deepEqual(queued.queue[0].payload.planReplacement, intent)
+  assert.deepEqual(workoutJournalSchema.parse(JSON.parse(JSON.stringify(queued))).queue[0].payload.planReplacement, intent)
+  assert.equal(queued.queue[1].payload.planReplacement, undefined)
+})
+
+test('częściowa podmiana wskazuje oryginał, także przy kolejnej podmianie przed synchronizacją', () => {
+  const original = makeSession()
+  original.exercises[0].sets[0].status = 'skipped'
+  const first = replaceWorkoutExercise(original, original.exercises[0].id, replacement, randomUUID)
+  assert.equal(first.session.exercises[1].replacesExerciseId, original.exercises[0].id)
+  const next = replaceWorkoutExercise(first.session, first.session.exercises[1].id, { ...replacement, id: randomUUID() }, randomUUID)
+  assert.equal(next.session.exercises[1].replacesExerciseId, original.exercises[0].id)
+  assert.equal(workoutPayload(next.session).exercises[1].replacesExerciseId, original.exercises[0].id)
+})
